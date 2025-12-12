@@ -1,0 +1,64 @@
+name: Auto Release & Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    # 1. Skip if the commit was made by this bot (prevents infinite loops)
+    if: "!contains(github.event.head_commit.message, 'chore(release)')"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to push tags/commits
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Configure Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Verify Tests
+        run: npm test
+
+      - name: Build Library
+        run: npm run build:lib
+
+      # 2. Bump Version & Tag
+      # "npm version patch" updates package.json and creates a git tag.
+      # The commit message includes [skip ci] effectively, but we already have the 'if' check at the job level.
+      - name: Bump Version (Patch)
+        run: npm version patch -m "chore(release): %s"
+
+      # 3. Push Changes (Commit + Tags)
+      - name: Push Changes
+        run: git push && git push --tags
+
+      # 4. Create GitHub Release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 5. Publish to NPM
+      - name: Publish to NPM
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
