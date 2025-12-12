@@ -1,4 +1,4 @@
-name: Auto Release & Publish
+name: Automatic Release & Publishing
 
 on:
   push:
@@ -7,22 +7,28 @@ on:
 
 jobs:
   release:
-    # 1. Skip if the commit was made by this bot (prevents infinite loops)
+    # 1. Skip if the commit was made by this bot (to prevent infinite loops)
     if: ${{ !contains(github.event.head_commit.message, 'chore(release)') }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required to push tags/commits
+      contents: write # Required for pushing tags and commits back to the repo
       packages: write
+      id-token: write # <<<< NEW: Essential permission for OpenID Connect (OIDC) / Trusted Publishers
 
     steps:
       - uses: actions/checkout@v4
         with:
+          # Using the GITHUB_TOKEN to check out the code
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # 2. Set up Node.js and configure NPM for OIDC publishing
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
+          # This token parameter instructs setup-node to use the OIDC mechanism 
+          # to fetch a short-lived NPM publish token from the registry.
+          token: ${{ secrets.GITHUB_TOKEN }} 
 
       - name: Configure Git User
         run: |
@@ -38,20 +44,20 @@ jobs:
       - name: Build Library
         run: npm run build:lib
 
-      # 2. Bump Version & Tag
-      # "npm version patch" updates package.json and creates a git tag.
-      # The commit message includes [skip ci] effectively, but we already have the 'if' check at the job level.
+      # 3. Bump Version & Tag
+      # 'npm version patch' updates package.json and creates a git tag.
       - name: Bump Version (Patch)
         id: get_version
         run: |
           NEW_VERSION=$(npm version patch -m "chore(release): %s")
           echo "VERSION=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
-      # 3. Push Changes (Commit + Tags)
+      # 4. Push Changes (Commit + Tags)
+      # This pushes the new version commit and the tag created in the previous step.
       - name: Push Changes
         run: git push && git push --tags
 
-      # 4. Create GitHub Release
+      # 5. Create GitHub Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -60,8 +66,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 5. Publish to NPM
-      - name: Publish to NPM
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # 6. Publish to NPM
+      # The OIDC token is automatically handled by the setup-node step (step 2).
+      - name: Publish to NPM (using Trusted Publisher)
         run: npm publish --access public
