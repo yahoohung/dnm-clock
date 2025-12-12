@@ -1,6 +1,6 @@
 {
   "name": "dnm-clock",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A high-precision, drift-free broadcast timer engine designed to maintain atomic accuracy under extreme main-thread rendering loads.",
   "type": "module",
   "files": [
