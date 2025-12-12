@@ -9,18 +9,18 @@ export interface NaiveClockHandle {
 
 // Pure Helper
 const formatTime = (totalSeconds: number): string => {
-  const absSeconds = Math.abs(totalSeconds);
-  const h = Math.floor(absSeconds / 3600);
-  const m = Math.floor((absSeconds % 3600) / 60);
-  const s = Math.floor(absSeconds % 60);
-  const prefix = totalSeconds < 0 ? '-' : '';
-  return `${prefix}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    const absSeconds = Math.abs(totalSeconds);
+    const h = Math.floor(absSeconds / 3600);
+    const m = Math.floor((absSeconds % 3600) / 60);
+    const s = Math.floor(absSeconds % 60);
+    const prefix = totalSeconds < 0 ? '-' : '';
+    return `${prefix}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
-export const NaiveClock = forwardRef<NaiveClockHandle, { className?: string }>(({ className }, ref) => {
+export const NaiveClock = forwardRef<NaiveClockHandle, React.HTMLAttributes<HTMLDivElement> & { className?: string }>(({ className, ...props }, ref) => {
     const [displayTime, setDisplayTime] = useState("00:00:00");
     const [isRunning, setIsRunning] = useState(false);
-    
+
     // Internal mutable state for time calculation
     const state = useRef({
         startTime: 0,
@@ -40,13 +40,13 @@ export const NaiveClock = forwardRef<NaiveClockHandle, { className?: string }>((
             setIsRunning(false);
         },
         setTime: (seconds: number) => {
-             state.current.baseTime = seconds * 1000;
-             // If currently running, we must reset the start anchor to "now"
-             // to prevent the old elapsed time from being added to the new base.
-             if (isRunning) {
-                 state.current.startTime = Date.now();
-             }
-             setDisplayTime(formatTime(seconds));
+            state.current.baseTime = seconds * 1000;
+            // If currently running, we must reset the start anchor to "now"
+            // to prevent the old elapsed time from being added to the new base.
+            if (isRunning) {
+                state.current.startTime = Date.now();
+            }
+            setDisplayTime(formatTime(seconds));
         },
         adjustTime: (delta: number) => {
             state.current.baseTime += delta * 1000;
@@ -79,7 +79,7 @@ export const NaiveClock = forwardRef<NaiveClockHandle, { className?: string }>((
     }, [isRunning]);
 
     return (
-        <div className={`font-mono tabular-nums ${className}`}>
+        <div className={`font-mono tabular-nums ${className}`} {...props}>
             {displayTime}
         </div>
     );

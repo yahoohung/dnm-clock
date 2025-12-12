@@ -23,10 +23,13 @@ describe('useBroadcastMatchTimer Hook', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     (window as any).Worker = MockHookWorker;
-    window.URL.createObjectURL = vi.fn();
+    window.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
     window.URL.revokeObjectURL = vi.fn();
     workerOnMessageCallback = null;
-    vi.spyOn(console, 'error').mockImplementation(() => {}); // Suppress error logs for negative test
+    vi.spyOn(console, 'error').mockImplementation(() => { }); // Suppress error logs for negative test
+
+    // Mock performance.now explicitly
+    vi.spyOn(performance, 'now').mockReturnValue(0);
   });
 
   afterEach(() => {
@@ -37,7 +40,10 @@ describe('useBroadcastMatchTimer Hook', () => {
   it('updates state when Worker sends TICK message', () => {
     const { result } = renderHook(() => useBroadcastMatchTimer(0));
     act(() => { result.current.start(); });
-    vi.advanceTimersByTime(2000);
+    // vi.advanceTimersByTime(2000);
+    // Update our mock time
+    (performance.now as any).mockReturnValue(2000);
+
     act(() => {
       if (workerOnMessageCallback) {
         workerOnMessageCallback({ data: { type: 'TICK' } } as MessageEvent);
@@ -49,9 +55,11 @@ describe('useBroadcastMatchTimer Hook', () => {
   it('pauses correctly', () => {
     const { result } = renderHook(() => useBroadcastMatchTimer(0));
     act(() => { result.current.start(); });
-    vi.advanceTimersByTime(5000);
-    act(() => { if(workerOnMessageCallback) workerOnMessageCallback({ data: { type: 'TICK' } } as MessageEvent); });
-    
+    // Forward 5s
+    (performance.now as any).mockReturnValue(5000);
+
+    act(() => { if (workerOnMessageCallback) workerOnMessageCallback({ data: { type: 'TICK' } } as MessageEvent); });
+
     act(() => { result.current.pause(); });
     expect(mockPostMessage).toHaveBeenCalledWith({ type: 'STOP' });
   });
@@ -76,7 +84,7 @@ describe('useBroadcastMatchTimer Hook', () => {
     };
 
     const { result } = renderHook(() => useBroadcastMatchTimer(0));
-    
+
     // Should not crash, but also won't run.
     expect(result.current.displayTime).toBe('00:00:00');
     expect(console.error).toHaveBeenCalledWith('Clock Worker Init Failed:', expect.any(Error));

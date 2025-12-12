@@ -7,7 +7,7 @@ describe('NaiveClock Component', () => {
   let ref: React.RefObject<NaiveClockHandle>;
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval', 'setTimeout'] });
     ref = React.createRef<NaiveClockHandle>();
   });
 
@@ -29,14 +29,18 @@ describe('NaiveClock Component', () => {
 
   it('pauses and resumes without losing time', () => {
     render(<NaiveClock ref={ref} />);
-    act(() => { ref.current?.start(); vi.advanceTimersByTime(5000); });
+    act(() => { ref.current?.start(); });
+    act(() => { vi.advanceTimersByTime(5000); });
+
     expect(screen.getByText('00:00:05')).toBeInTheDocument();
 
     act(() => { ref.current?.pause(); });
     act(() => { vi.advanceTimersByTime(10000); });
     expect(screen.getByText('00:00:05')).toBeInTheDocument();
 
-    act(() => { ref.current?.start(); vi.advanceTimersByTime(2000); });
+    act(() => { ref.current?.start(); });
+    act(() => { vi.advanceTimersByTime(2000); });
+
     expect(screen.getByText('00:00:07')).toBeInTheDocument();
   });
 
@@ -58,10 +62,10 @@ describe('NaiveClock Component', () => {
     // Spy on window.clearInterval since we are in JSDOM environment
     const spyClearInterval = vi.spyOn(window, 'clearInterval');
     const { unmount } = render(<NaiveClock ref={ref} />);
-    
+
     act(() => { ref.current?.start(); });
     unmount();
-    
+
     // We expect clearInterval to have been called when unmounting a running clock
     expect(spyClearInterval).toHaveBeenCalled();
   });

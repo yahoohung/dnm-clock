@@ -36,7 +36,7 @@ describe('App Integration', () => {
 
   it('renders the layout and all sub-components', () => {
     render(<App />);
-    expect(screen.getByText('DNM Clock PoC')).toBeInTheDocument();
+    expect(screen.getByText('DNM Broadcast Engine')).toBeInTheDocument();
     expect(screen.getByTestId('mission-clock')).toBeInTheDocument();
     expect(screen.getByTestId('naive-clock')).toBeInTheDocument();
     expect(screen.getByText(/Stress Testing Lab/i)).toBeInTheDocument();
@@ -44,13 +44,13 @@ describe('App Integration', () => {
 
   it('toggles Start/Pause state and updates UI button text', () => {
     render(<App />);
-    
+
     const toggleBtn = screen.getByText('START');
     fireEvent.click(toggleBtn);
 
     // Should flip to PAUSE
     expect(screen.getByText('PAUSE')).toBeInTheDocument();
-    
+
     // Click again
     fireEvent.click(screen.getByText('PAUSE'));
     expect(screen.getByText('START')).toBeInTheDocument();
@@ -58,21 +58,21 @@ describe('App Integration', () => {
 
   it('triggers atomic adjustments when adjustment buttons are clicked', () => {
     render(<App />);
-    
+
     // There are multiple adjustment buttons. Let's find +1H
-    const addHourBtn = screen.getByText('+1H');
+    const addHourBtn = screen.getByText('+1h');
     // We can't easily spy on the internal ref methods in an integration test 
     // without more complex mocking, but we can ensure the app doesn't crash 
     // and the buttons are clickable.
     fireEvent.click(addHourBtn);
-    
-    const subSecBtn = screen.getByText('-1S');
+
+    const subSecBtn = screen.getByText('-1s');
     fireEvent.click(subSecBtn);
   });
 
   it('activates presets correctly', () => {
     render(<App />);
-    const halftimeBtn = screen.getByText('Halftime (45:00)');
+    const halftimeBtn = screen.getByText('HT (45:00)');
     fireEvent.click(halftimeBtn);
     // Again, ensuring no crash and event propagation
   });

@@ -127,6 +127,12 @@ self.onmessage = function(e) {
       state.baseTimeMs = payload.initialSeconds * 1000;
       state.lastRenderedSecond = payload.initialSeconds;
       
+      // [FIX] Initialize dimensions from canvas to ensure first paint works
+      if (canvas) {
+        state.width = canvas.width;
+        state.height = canvas.height;
+      }
+      
       paint(payload.initialSeconds);
       break;
 

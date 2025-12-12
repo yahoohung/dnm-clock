@@ -33,7 +33,7 @@ describe('Worker Logic (Headless Simulation)', () => {
     vi.useFakeTimers();
     requestAnimationFrameCallbacks = [];
     mockCancelAnimationFrame = vi.fn();
-    
+
     mockCtx = {
       clearRect: vi.fn(),
       fillRect: vi.fn(),
@@ -42,8 +42,16 @@ describe('Worker Logic (Headless Simulation)', () => {
       beginPath: vi.fn(),
       arc: vi.fn(),
       fill: vi.fn(),
+      textAlign: '',
+      textBaseline: '',
+      shadowBlur: 0,
+      shadowColor: '',
+      fillStyle: ''
     };
     mockSelf = { onmessage: null, postMessage: vi.fn() };
+
+    // Explicitly mock performance.now
+    vi.spyOn(performance, 'now').mockReturnValue(0);
   });
 
   afterEach(() => {
@@ -67,7 +75,7 @@ describe('Worker Logic (Headless Simulation)', () => {
 
   it('handles PAUSE and RESUME correctly (offset calculation)', () => {
     loadWorkerScript();
-    
+
     // 1. Init
     mockSelf.onmessage({
       data: {
@@ -82,26 +90,32 @@ describe('Worker Logic (Headless Simulation)', () => {
 
     // 2. Start
     mockSelf.onmessage({ data: { type: 'START' } });
-    
+
     // 3. Run for 10 seconds
-    vi.advanceTimersByTime(10000); 
-    triggerNextFrame(); 
+    // 3. Run for 10 seconds
+    (performance.now as any).mockReturnValue(10000);
+    vi.advanceTimersByTime(10000);
+    triggerNextFrame();
     expect(mockCtx.fillText).toHaveBeenLastCalledWith('00:00:10', expect.any(Number), expect.any(Number));
 
     // 4. Pause
     mockSelf.onmessage({ data: { type: 'PAUSE' } });
-    
+
     // VERIFY STOP: cancelAnimationFrame must be called to stop the loop
     expect(mockCancelAnimationFrame).toHaveBeenCalled();
 
     // 5. Wait 5 seconds
+    // 5. Wait 5 seconds
+    (performance.now as any).mockReturnValue(15000);
     vi.advanceTimersByTime(5000);
     triggerNextFrame(); // Should do nothing or not be scheduled
 
     // 6. Resume
     mockSelf.onmessage({ data: { type: 'START' } });
-    
+
     // 7. Advance 2 seconds
+    // 7. Advance 2 seconds
+    (performance.now as any).mockReturnValue(17000);
     vi.advanceTimersByTime(2000);
     triggerNextFrame();
 
@@ -110,7 +124,7 @@ describe('Worker Logic (Headless Simulation)', () => {
 
   it('handles UPDATE_CONFIG dynamic changes', () => {
     loadWorkerScript();
-    
+
     mockSelf.onmessage({
       data: {
         type: 'INIT',
@@ -121,7 +135,7 @@ describe('Worker Logic (Headless Simulation)', () => {
         }
       }
     });
-    
+
     mockSelf.onmessage({
       data: {
         type: 'UPDATE_CONFIG',
@@ -136,7 +150,7 @@ describe('Worker Logic (Headless Simulation)', () => {
 
   it('handles SET_TIME while running (resets anchor)', () => {
     loadWorkerScript();
-    
+
     mockSelf.onmessage({
       data: {
         type: 'INIT',
@@ -148,6 +162,8 @@ describe('Worker Logic (Headless Simulation)', () => {
       }
     });
     mockSelf.onmessage({ data: { type: 'START' } });
+    mockSelf.onmessage({ data: { type: 'START' } });
+    (performance.now as any).mockReturnValue(5000);
     vi.advanceTimersByTime(5000);
 
     mockSelf.onmessage({
@@ -159,12 +175,13 @@ describe('Worker Logic (Headless Simulation)', () => {
 
     expect(mockCtx.fillText).toHaveBeenLastCalledWith('01:00:00', expect.any(Number), expect.any(Number));
 
+    (performance.now as any).mockReturnValue(6000);
     vi.advanceTimersByTime(1000);
     triggerNextFrame();
     expect(mockCtx.fillText).toHaveBeenLastCalledWith('01:00:01', expect.any(Number), expect.any(Number));
   });
-  
-   it('handles ADJUST_TIME (atomic increment) correctly', () => {
+
+  it('handles ADJUST_TIME (atomic increment) correctly', () => {
     loadWorkerScript();
     mockSelf.onmessage({
       data: {
@@ -181,7 +198,7 @@ describe('Worker Logic (Headless Simulation)', () => {
     });
     expect(mockCtx.fillText).toHaveBeenLastCalledWith('01:00:00', expect.any(Number), expect.any(Number));
   });
-  
+
   it('handles RESIZE and recalculates dimensions immediately', () => {
     loadWorkerScript();
     const mockCanvas = { width: 100, height: 100, getContext: () => mockCtx };

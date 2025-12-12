@@ -28,7 +28,8 @@ const DEFAULT_CONFIG: ClockStyleConfig = {
 /**
  * Props for the MissionClock component.
  */
-export interface MissionClockProps {
+// [FIX] Extend HTMLAttributes to allow data-testid etc.
+export interface MissionClockProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Initial time in seconds to display (default: 0) */
   initialSeconds?: number;
   /** Optional style configuration overrides */
@@ -42,42 +43,18 @@ export interface MissionClockProps {
   controllerRef?: React.MutableRefObject<any>;
 }
 
-/**
- * A high-performance, off-thread rendering clock component.
- * 
- * ============================================================================
- * COMPONENT: Mission Clock (React 18 Hardened)
- * * SECURITY: CSP Compliant (Import URL)
- * * STABILITY: React 18 Strict Mode Safe (Imperative DOM)
- * ============================================================================
- * 
- * Uses `OffscreenCanvas` inside a dedicated Web Worker to render time.
- * This ensures the clock remains smooth (60fps) and accurate even when 
- * the main React thread is blocked or stuttering.
- * 
- * @param props - {@link MissionClockProps}
- * @returns A React component wrapping the offscreen canvas
- * 
- * @example
- * ```tsx
- * <MissionClock 
- *   initialSeconds={60} 
- *   config={{ textColor: '#00ff00' }} 
- *   className="w-full h-64"
- * />
- * ```
- */
-export const MissionClock = ({ 
-  initialSeconds = 0, 
-  config = {}, 
+export const MissionClock = ({
+  initialSeconds = 0,
+  config = {},
   className = "",
-  controllerRef 
+  controllerRef,
+  ...props
 }: MissionClockProps) => {
-  
+
   // [FIX] Ref points to container DIV, not Canvas directly
   const containerRef = useRef<HTMLDivElement>(null);
   const workerRef = useRef<Worker | null>(null);
-  
+
   const activeConfig = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config]);
 
   useEffect(() => {
@@ -104,16 +81,16 @@ export const MissionClock = ({
     // Transfer Control
     // Since canvas is freshly created, it will not throw InvalidStateError
     const offscreen = canvas.transferControlToOffscreen();
-    
+
     worker.postMessage(
-      { 
-        type: 'INIT', 
-        payload: { 
-          canvas: offscreen, 
+      {
+        type: 'INIT',
+        payload: {
+          canvas: offscreen,
           config: activeConfig,
-          initialSeconds 
-        } 
-      }, 
+          initialSeconds
+        }
+      },
       [offscreen]
     );
 
@@ -122,12 +99,12 @@ export const MissionClock = ({
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
         const dpr = window.devicePixelRatio || 1;
-        
+
         worker.postMessage({
           type: 'RESIZE',
           payload: {
             // Send physical pixel dimensions
-            width: Math.round(width * dpr), 
+            width: Math.round(width * dpr),
             height: Math.round(height * dpr),
             dpr: dpr
           }
@@ -142,9 +119,9 @@ export const MissionClock = ({
         start: () => worker.postMessage({ type: 'START' }),
         pause: () => worker.postMessage({ type: 'PAUSE' }),
         setTime: (s: number) => worker.postMessage({ type: 'SET_TIME', payload: { seconds: s } }),
-        adjustTime: (delta: number) => worker.postMessage({ 
-          type: 'ADJUST_TIME', 
-          payload: { deltaSeconds: delta } 
+        adjustTime: (delta: number) => worker.postMessage({
+          type: 'ADJUST_TIME',
+          payload: { deltaSeconds: delta }
         })
       };
     }
@@ -155,7 +132,7 @@ export const MissionClock = ({
       worker.terminate();
       workerRef.current = null;
       URL.revokeObjectURL(workerUrl);
-      
+
       // [FIX] Important: Manually remove canvas to keep DOM clean
       if (containerRef.current && containerRef.current.contains(canvas)) {
         containerRef.current.removeChild(canvas);
@@ -174,11 +151,12 @@ export const MissionClock = ({
   }, [activeConfig]);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`relative ${className}`}
+      {...props}
       // Ensure min-height before canvas loads
-      style={{ minHeight: '1px' }} 
+      style={{ minHeight: '1px' }}
     />
   );
 };
