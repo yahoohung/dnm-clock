@@ -1,0 +1,5 @@
+{
+  "name": "DNM Clock",
+  "description": "A broadcast-grade, drift-free match timer playground designed to stress test time synchronisation under heavy main-thread load and extreme edge cases.",
+  "requestFramePermissions": []
+}
