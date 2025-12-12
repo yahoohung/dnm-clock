@@ -42,7 +42,10 @@ jobs:
       # "npm version patch" updates package.json and creates a git tag.
       # The commit message includes [skip ci] effectively, but we already have the 'if' check at the job level.
       - name: Bump Version (Patch)
-        run: npm version patch -m "chore(release): %s"
+        id: get_version
+        run: |
+          NEW_VERSION=$(npm version patch -m "chore(release): %s")
+          echo "VERSION=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
       # 3. Push Changes (Commit + Tags)
       - name: Push Changes
