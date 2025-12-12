@@ -1,4 +1,4 @@
-# High-Precision Broadcast Match Timer PoC
+# DNM Clock
 
 > **A high-precision, drift-free broadcast timer engine designed to maintain atomic accuracy under extreme main-thread rendering loads.**
 

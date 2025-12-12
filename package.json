@@ -1,5 +1,5 @@
 {
-  "name": "dnm-broadcast-timer",
+  "name": "dnm-clock",
   "version": "1.0.0",
   "description": "A high-precision, drift-free broadcast timer engine designed to maintain atomic accuracy under extreme main-thread rendering loads.",
   "type": "module",
@@ -7,22 +7,23 @@
     "dist",
     "README.md"
   ],
-  "main": "./dist/dnm-broadcast-timer.umd.js",
-  "module": "./dist/dnm-broadcast-timer.es.js",
+  "main": "./dist/dnm-clock.umd.js",
+  "module": "./dist/dnm-clock.es.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/dnm-broadcast-timer.es.js",
-      "require": "./dist/dnm-broadcast-timer.umd.js"
+      "import": "./dist/dnm-clock.es.js",
+      "require": "./dist/dnm-clock.umd.js"
     }
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yahoohung/dnm-clock.git"
+    "url": "git+https://github.com/yahoohung/dnm-clock.git"
   },
   "keywords": [
     "react",
+    "clock",
     "timer",
     "broadcast",
     "web-worker",
@@ -30,14 +31,15 @@
     "hook",
     "drift-free"
   ],
-  "author": "Yahoo Hung",
+  "author": "yahoohung",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "build:lib": "tsc && vite build --config vite.lib.config.ts",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepublishOnly": "npm run build:lib"
   },
   "peerDependencies": {

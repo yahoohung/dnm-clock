@@ -8,7 +8,7 @@ on:
 jobs:
   release:
     # 1. Skip if the commit was made by this bot (prevents infinite loops)
-    if: "!contains(github.event.head_commit.message, 'chore(release)')"
+    if: ${{ !contains(github.event.head_commit.message, 'chore(release)') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write # Required to push tags/commits
@@ -62,6 +62,6 @@ jobs:
 
       # 5. Publish to NPM
       - name: Publish to NPM
-        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public

@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [
     react(),
-    dts({ 
+    dts({
       include: ['lib'],
       rollupTypes: true, // Bundles d.ts files into a single index.d.ts
     })
@@ -18,8 +18,8 @@ export default defineConfig({
     copyPublicDir: false,
     lib: {
       entry: resolve(__dirname, 'lib/index.ts'),
-      name: 'DNMBroadcastTimer',
-      fileName: (format) => `dnm-broadcast-timer.${format}.js`,
+      name: 'DNMClock',
+      fileName: (format) => `dnm-clock.${format}.js`,
     },
     rollupOptions: {
       external: ['react', 'react-dom'],
