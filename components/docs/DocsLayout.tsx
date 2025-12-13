@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MissionClock } from '../../lib';
-import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash';
-import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
-import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
-
-SyntaxHighlighter.registerLanguage('bash', bash);
-SyntaxHighlighter.registerLanguage('typescript', typescript);
-SyntaxHighlighter.registerLanguage('tsx', tsx);
+import { DNMClock } from '../../lib';
+import { CodeBlock } from './CodeBlock';
 
 export const DocsLayout = () => {
     const [activeSection, setActiveSection] = useState('intro');
@@ -63,10 +55,10 @@ export const DocsLayout = () => {
                             </li>
                             <li>
                                 <button
-                                    onClick={() => navigate('installation')}
-                                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${activeSection === 'installation' ? 'bg-blue-600/10 text-blue-400 font-medium' : 'hover:bg-slate-800'}`}
+                                    onClick={() => navigate('quickstart')}
+                                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${activeSection === 'quickstart' ? 'bg-blue-600/10 text-blue-400 font-medium' : 'hover:bg-slate-800'}`}
                                 >
-                                    Installation
+                                    Quick Start
                                 </button>
                             </li>
                         </ul>
@@ -121,7 +113,7 @@ export const DocsLayout = () => {
             {/* MAIN CONTENT */}
             <main className="flex-1 p-6 md:p-12 max-w-4xl mx-auto w-full">
                 {activeSection === 'intro' && <IntroSection />}
-                {activeSection === 'installation' && <InstallationSection />}
+                {activeSection === 'quickstart' && <QuickStartSection />}
                 {activeSection === 'api' && <ApiSection />}
                 {activeSection === 'styling' && <StylingSection />}
                 {activeSection === 'controls' && <ControlsSection />}
@@ -287,7 +279,7 @@ const IntroSection = () => (
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Built for React</h3>
                 <p className="text-slate-400 relative z-10 text-sm leading-relaxed max-w-lg">
-                    This library currently exports a <strong>React Component</strong> (<code>&lt;MissionClock /&gt;</code>) and a set of hooks.
+                    This library currently exports a <strong>React Component</strong> (<code>&lt;DNMClock /&gt;</code>) and a set of hooks.
                     It requires <code>react</code> version 18+ as a peer dependency.
                 </p>
                 <div className="mt-4 inline-block px-3 py-1 bg-blue-900/30 border border-blue-500/30 rounded text-xs text-blue-300">
@@ -295,35 +287,69 @@ const IntroSection = () => (
                 </div>
 
                 <p className="text-xs text-slate-500 mt-6 pt-4 border-t border-slate-800">
-                    <em><strong>Note:</strong> The underlying <code>clock.worker.ts</code> engine is framework-agnostic. Vue/Svelte bindings can be implemented by porting the `MissionClock` wrapper.</em>
+                    <em><strong>Note:</strong> The underlying <code>clock.worker.ts</code> engine is framework-agnostic. Vue/Svelte bindings can be implemented by porting the `DNMClock` wrapper.</em>
                 </p>
             </div>
         </div>
     </div>
 );
 
-const InstallationSection = () => (
+const QuickStartSection = () => (
     <div className="space-y-6 animate-in fade-in duration-500">
-        <h1 className="text-4xl font-bold text-white mb-4">Installation</h1>
+        <h1 className="text-4xl font-bold text-white mb-4">Quick Start</h1>
         <p className="text-lg text-slate-400 mb-6">
-            Install the package via your favorite package manager.
+            Get up and running with <strong>dnm-clock</strong> in seconds.
         </p>
 
-        <div className="space-y-4">
-            <div className="bg-[#1e1e1e] p-4 rounded-lg border border-slate-700 shadow-xl overflow-x-auto">
-                <SyntaxHighlighter language="bash" style={vscDarkPlus} customStyle={{ background: 'transparent', padding: 0 }}>
-                    {`npm install dnm-clock`}
-                </SyntaxHighlighter>
+        <div className="space-y-8">
+            <div>
+                <h3 className="text-xl font-bold text-white mb-3">1. Installation</h3>
+                <div className="space-y-4">
+                    <div className="w-full">
+                        <CodeBlock language="bash" code={`npm install dnm-clock`} />
+                    </div>
+                    <div className="w-full">
+                        <CodeBlock language="bash" code={`yarn add dnm-clock`} />
+                    </div>
+                    <div className="w-full">
+                        <CodeBlock language="bash" code={`pnpm add dnm-clock`} />
+                    </div>
+                </div>
             </div>
-            <div className="bg-[#1e1e1e] p-4 rounded-lg border border-slate-700 shadow-xl overflow-x-auto">
-                <SyntaxHighlighter language="bash" style={vscDarkPlus} customStyle={{ background: 'transparent', padding: 0 }}>
-                    {`yarn add dnm-clock`}
-                </SyntaxHighlighter>
+
+            <div>
+                <h3 className="text-xl font-bold text-white mb-3">2. Import</h3>
+                <div className="w-full">
+                    <CodeBlock language="typescript" code={`import { DNMClock } from 'dnm-clock';`} />
+                </div>
             </div>
-            <div className="bg-[#1e1e1e] p-4 rounded-lg border border-slate-700 shadow-xl overflow-x-auto">
-                <SyntaxHighlighter language="bash" style={vscDarkPlus} customStyle={{ background: 'transparent', padding: 0 }}>
-                    {`pnpm add dnm-clock`}
-                </SyntaxHighlighter>
+
+            <div>
+                <h3 className="text-xl font-bold text-white mb-3">3. Usage</h3>
+                <p className="text-slate-400 mb-3 text-sm">
+                    Drop the component into your app. It works out of the box with default settings.
+                </p>
+                <div className="w-full">
+                    <CodeBlock language="tsx" code={`export const MyTimer = () => {
+  return (
+    <div style={{ width: '300px', height: '100px' }}>
+      <DNMClock className="w-full h-full" autoStart={true}/>
+    </div>
+  );
+};`} />
+                </div>
+            </div>
+            <div>
+                <h3 className="text-xl font-bold text-white mb-3">4. Result</h3>
+                <p className="text-slate-400 mb-3 text-sm">
+                    A precise, drift-free clock rendering in a worker thread.
+                </p>
+                <div className="h-32 w-full max-w-md bg-slate-900 rounded border border-slate-700 relative overflow-hidden">
+                    <DNMClock
+                        className="w-full h-full"
+                        autoStart={true}
+                    />
+                </div>
             </div>
         </div>
     </div>
@@ -334,7 +360,7 @@ const ApiSection = () => (
         <div>
             <h1 className="text-4xl font-bold text-white mb-4">API Reference</h1>
             <p className="text-lg text-slate-400">
-                The core component of the library is <code>MissionClock</code>. It accepts the following props:
+                The core component of the library is <code>DNMClock</code>. It accepts the following props:
             </p>
         </div>
 
@@ -385,9 +411,8 @@ const ApiSection = () => (
 
         <div>
             <h2 className="text-2xl font-bold text-white mb-4">ClockStyleConfig</h2>
-            <div className="bg-[#1e1e1e] p-4 rounded-lg border border-slate-700 shadow-xl overflow-x-auto">
-                <SyntaxHighlighter language="typescript" style={vscDarkPlus} customStyle={{ background: 'transparent', padding: 0 }}>
-                    {`interface ClockStyleConfig {
+            <div className="w-full">
+                <CodeBlock language="typescript" code={`interface ClockStyleConfig {
   backgroundColor: string; // Hex or RGBA
   textColor: string;       // Hex or RGBA
   fontFamily: string;      // Valid CSS font-family
@@ -396,8 +421,7 @@ const ApiSection = () => (
   glowEffect: boolean;     // Enable text-shadow glow
   showDot: boolean;        // Show the pulsing "worker active" dot
   timeFormat?: string;     // "hh:mm:ss", "mm:ss", "m:ss", "s"
-}`}
-                </SyntaxHighlighter>
+}`} />
             </div>
         </div>
     </div>
@@ -442,7 +466,7 @@ const StylingSection = () => {
                     <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Live Preview</h3>
                         <div className="h-64 rounded-lg overflow-hidden border border-slate-600 bg-black relative">
-                            <MissionClock
+                            <DNMClock
                                 config={config}
                                 className="w-full h-full"
                                 initialSeconds={3665} // Example time (01:01:05)
@@ -463,11 +487,10 @@ const StylingSection = () => {
 
                 {/* CODE */}
                 <div className="space-y-4">
-                    <div className="bg-[#1e1e1e] p-4 rounded-xl border border-slate-700 shadow-xl h-full flex flex-col">
+                    <div className="h-full flex flex-col">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Generated Code</h3>
                         <div className="flex-1">
-                            <SyntaxHighlighter language="tsx" style={vscDarkPlus} customStyle={{ background: 'transparent', padding: 0 }}>
-                                {`<MissionClock 
+                            <CodeBlock language="tsx" code={`<DNMClock 
   config={{
     backgroundColor: '${config.backgroundColor}',
     textColor: '${config.textColor}',
@@ -476,8 +499,7 @@ const StylingSection = () => {
     showDot: ${config.showDot},
     timeFormat: '${config.timeFormat}'
   }}
-/>`}
-                            </SyntaxHighlighter>
+/>`} />
                         </div>
                     </div>
                 </div>
@@ -510,7 +532,7 @@ const ControlsSection = () => {
                 {/* PREVIEW */}
                 <div className="space-y-6">
                     <div className="h-48 rounded-lg overflow-hidden border border-slate-600 bg-slate-900 relative">
-                        <MissionClock
+                        <DNMClock
                             controllerRef={controller}
                             config={{
                                 backgroundColor: 'transparent',
@@ -535,13 +557,12 @@ const ControlsSection = () => {
                 </div>
 
                 {/* CODE */}
-                <div className="bg-[#1e1e1e] p-4 rounded-xl border border-slate-700 shadow-xl overflow-x-auto">
-                    <SyntaxHighlighter language="tsx" style={vscDarkPlus} customStyle={{ background: 'transparent', padding: 0 }}>
-                        {`// 1. Create a ref
+                <div className="w-full">
+                    <CodeBlock language="tsx" code={`// 1. Create a ref
 const controller = useRef(null);
 
 // 2. Pass to component
-<MissionClock controllerRef={controller} />
+<DNMClock controllerRef={controller} />
 
 // 3. call methods anywhere
 <button onClick={() => controller.current.start()}>
@@ -550,8 +571,7 @@ const controller = useRef(null);
 
 <button onClick={() => controller.current.setDirection('DOWN')}>
   Count Down
-</button>`}
-                    </SyntaxHighlighter>
+</button>`} />
                 </div>
             </div>
         </div>
@@ -570,7 +590,7 @@ const ShowcaseSection = () => (
             </h3>
             <p className="text-sm text-slate-400">Fixed width monospace font for stable digit alignment.</p>
             <div className="h-32 bg-black rounded border border-slate-700 relative overflow-hidden">
-                <MissionClock
+                <DNMClock
                     config={{
                         backgroundColor: '#000',
                         textColor: '#fbbf24', // Amber
@@ -593,16 +613,13 @@ const ShowcaseSection = () => (
             </h3>
             <p className="text-sm text-slate-400">Precise, clean, no-nonsense timing for market opens/closes.</p>
             <div className="h-24 bg-white rounded border border-slate-300 relative overflow-hidden">
-                <MissionClock
+                <DNMClock
                     config={{
-                        backgroundColor: '#ffffff',
-                        textColor: '#1e293b',
-                        fontFamily: 'Arial',
-                        glowEffect: false,
-                        showDot: true
+                        backgroundColor: 'transparent',
+                        timeFormat: 'hh:mm:ss'
                     }}
+                    className="h-12 w-32"
                     initialSeconds={34200} // 09:30:00
-                    className="w-full h-full"
                     autoStart={true}
                 />
             </div>
@@ -616,7 +633,7 @@ const ShowcaseSection = () => (
             </h3>
             <p className="text-sm text-slate-400">Countdown to zero, stopping automatically. High impact style.</p>
             <div className="h-40 bg-black rounded border border-slate-700 relative overflow-hidden">
-                <MissionClock
+                <DNMClock
                     config={{
                         backgroundColor: '#000000',
                         textColor: '#ff00ff',

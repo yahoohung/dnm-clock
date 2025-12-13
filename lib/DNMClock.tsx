@@ -24,19 +24,19 @@ export interface ClockStyleConfig {
 }
 
 const DEFAULT_CONFIG: ClockStyleConfig = {
-  backgroundColor: '#0f172a',
-  textColor: '#22c55e',
-  fontFamily: "'Courier New', monospace",
-  glowEffect: true,
+  backgroundColor: '#ffffff',
+  textColor: '#000000',
+  fontFamily: "Arial, sans-serif",
+  glowEffect: false,
   showDot: true,
   timeFormat: 'hh:mm:ss',
 };
 
 /**
- * Props for the MissionClock component.
+ * Props for the DNMClock component.
  */
 // [FIX] Extend HTMLAttributes to allow data-testid etc.
-export interface MissionClockProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface DNMClockProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Initial time in seconds to display (default: 0) */
   initialSeconds?: number;
   /** Optional style configuration overrides */
@@ -56,7 +56,7 @@ export interface MissionClockProps extends React.HTMLAttributes<HTMLDivElement> 
   stopAtZero?: boolean;
 }
 
-export const MissionClock = ({
+export const DNMClock = ({
   initialSeconds = 0,
   config = {},
   className = "",
@@ -65,7 +65,7 @@ export const MissionClock = ({
   countDirection = 'UP',
   stopAtZero = false,
   ...props
-}: MissionClockProps) => {
+}: DNMClockProps) => {
 
   // [FIX] Ref points to container DIV, not Canvas directly
   const containerRef = useRef<HTMLDivElement>(null);

@@ -28,7 +28,7 @@ In standard React applications, timers rely on the **Main Thread**. This is the 
 
 If any of these tasks take too long (e.g., a complex render or a heavy calculation), the **Event Loop blocks**. `setInterval` and `requestAnimationFrame` are delayed. This results in visual stutter, time drift, and "janky" broadcast graphics.
 
-## 🚀 The Solution: "Mission Clock" Architecture
+## 🚀 The Solution: "DNM Clock" Architecture
 
 This Proof of Concept implements a **Dual-Thread Architecture**:
 
@@ -82,9 +82,9 @@ npm run dev
 ### Component Usage
 
 ```tsx
-import { MissionClock } from 'dnm-clock';
+import { DNMClock } from 'dnm-clock';
 
-<MissionClock 
+<DNMClock 
   initialSeconds={60}
   countDirection="DOWN"
   stopAtZero={true}
@@ -99,13 +99,13 @@ import { MissionClock } from 'dnm-clock';
 
 ### Running the Comparison
 
-1.  **Start the Timer:** Click the green `START` button. Both the "Mission Clock" (Top) and "Naive Clock" (Bottom) will begin counting.
+1.  **Start the Timer:** Click the green `START` button. Both the "DNM Clock" (Top) and "Naive Clock" (Bottom) will begin counting.
 2.  **Apply Stress:**
     *   Locate the **Stress Testing Lab** on the right panel.
     *   Click **"Freeze 2.0s"**.
 3.  **Observe Results:**
     *   ❌ **Naive Clock (Main Thread):** Will completely stop updating for 2 seconds.
-    *   ✅ **Mission Clock (Worker):** Will continue ticking smoothly without skipping a single frame.
+    *   ✅ **DNM Clock (Worker):** Will continue ticking smoothly without skipping a single frame.
 
 ### Running Tests
 
@@ -120,7 +120,7 @@ npm test
 ```
 src/
 ├── components/
-│   ├── MissionClock.tsx      # The "Hero" component (Canvas + Worker glue)
+│   ├── DNMClock.tsx          # The "Hero" component (Canvas + Worker glue)
 │   ├── NaiveClock.tsx        # The "Control" group (Standard React State)
 │   ├── CpuStressTest.tsx     # Main thread blocker
 │   └── RenderLagSimulator.tsx # DOM thrashing tool

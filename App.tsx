@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { CpuStressTest } from './components/CpuStressTest';
 import { ChaosMonkey } from './components/ChaosMonkey';
 import { RenderLagSimulator } from './components/RenderLagSimulator';
-import { MissionClock, ClockStyleConfig } from './lib';
+import { DNMClock, ClockStyleConfig } from './lib';
 import { NaiveClock, NaiveClockHandle } from './components/NaiveClock';
 
 const STYLE_PRESETS: Record<string, { label: string, config: Partial<ClockStyleConfig> }> = {
@@ -186,11 +186,10 @@ function App() {
 
               {/* THE CLOCK COMPONENT */}
               <div className="w-full h-full flex items-center justify-center">
-                <MissionClock
-                  data-testid="mission-clock"
+                <DNMClock
                   controllerRef={clockControllerRef}
                   initialSeconds={0}
-                  className="w-full h-40" // Height is arbitrary, canvas scales
+                  className="w-full h-full" // Height is arbitrary, canvas scales
                   config={{
                     ...STYLE_PRESETS[activeStyle].config,
                     // Override color for pause state ONLY if in default mode (to match original behavior)
@@ -201,14 +200,14 @@ function App() {
 
                 {/* VIDEO PLAYER STYLE OVERLAY */}
                 <div
-                  className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isRunning ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}
+                  className={`absolute inset - 0 flex items - center justify - center transition - all duration - 300 ${isRunning ? 'opacity-0 hover:opacity-100' : 'opacity-100'} `}
                 >
                   <button
                     onClick={isRunning ? actions.pause : actions.start}
-                    className={`group relative flex items-center justify-center w-14 h-14 rounded-full border-2 backdrop-blur-md shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 ${activeStyle === 'minimal'
-                      ? 'bg-black/10 border-black/50 hover:bg-black/20 hover:border-black text-black'
-                      : 'bg-white/10 border-white/50 hover:bg-white/20 hover:border-white text-white'
-                      }`}
+                    className={`group relative flex items - center justify - center w - 14 h - 14 rounded - full border - 2 backdrop - blur - md shadow - 2xl hover: scale - 110 active: scale - 95 transition - all duration - 300 ${activeStyle === 'minimal'
+                        ? 'bg-black/10 border-black/50 hover:bg-black/20 hover:border-black text-black'
+                        : 'bg-white/10 border-white/50 hover:bg-white/20 hover:border-white text-white'
+                      } `}
                   >
                     {isRunning ? (
                       <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24">
@@ -222,8 +221,8 @@ function App() {
 
                     {/* Ripple/Glow ring */}
                     {!isRunning && (
-                      <div className={`absolute inset-0 rounded-full border animate-ping ${activeStyle === 'minimal' ? 'border-black/30' : 'border-white/30'
-                        }`} />
+                      <div className={`absolute inset - 0 rounded - full border animate - ping ${activeStyle === 'minimal' ? 'border-black/30' : 'border-white/30'
+                        } `} />
                     )}
                   </button>
                 </div>
@@ -245,7 +244,7 @@ function App() {
                   ref={mobileNaiveClockRef}
                   timeFormat={timeFormat}
                   data-testid="naive-clock-mobile"
-                  className={`text-5xl font-mono font-bold tracking-tighter ${isRunning ? 'text-red-500' : 'text-slate-700'}`}
+                  className={`text - 5xl font - mono font - bold tracking - tighter ${isRunning ? 'text-red-500' : 'text-slate-700'} `}
                 />
                 <p className="mt-2 text-[10px] text-red-900 uppercase font-bold tracking-widest">Susceptible to Lag</p>
               </div>
@@ -276,10 +275,10 @@ function App() {
             <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 flex gap-3">
               <button
                 onClick={isRunning ? actions.pause : actions.start}
-                className={`flex-1 rounded-lg font-bold text-lg tracking-wide shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${isRunning
-                  ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-900/20'
-                  : 'bg-green-600 hover:bg-green-500 text-white shadow-green-900/20'
-                  }`}
+                className={`flex - 1 rounded - lg font - bold text - lg tracking - wide shadow - lg transition - all active: scale - 95 flex items - center justify - center gap - 2 ${isRunning
+                    ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-900/20'
+                    : 'bg-green-600 hover:bg-green-500 text-white shadow-green-900/20'
+                  } `}
               >
                 {isRunning ? 'PAUSE' : 'START'}
               </button>
@@ -310,10 +309,10 @@ function App() {
                   setCountDirection(newDir);
                   actions.setDirection(newDir);
                 }}
-                className={`flex-1 min-w-[80px] py-3 text-xs font-mono font-bold border rounded transition-colors ${countDirection === 'DOWN'
-                  ? 'bg-orange-900/30 text-orange-400 border-orange-900/50 hover:bg-orange-900/50'
-                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-white'
-                  }`}
+                className={`flex - 1 min - w - [80px] py - 3 text - xs font - mono font - bold border rounded transition - colors ${countDirection === 'DOWN'
+                    ? 'bg-orange-900/30 text-orange-400 border-orange-900/50 hover:bg-orange-900/50'
+                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-white'
+                  } `}
               >
                 {countDirection === 'UP' ? 'Count UP' : 'Count DOWN'}
               </button>
@@ -328,10 +327,10 @@ function App() {
                 <button
                   key={key}
                   onClick={() => setActiveStyle(key)}
-                  className={`px-4 py-2 text-xs font-bold rounded transition-all whitespace-nowrap border ${activeStyle === key
-                    ? 'bg-slate-100 text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.3)]'
-                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-600 hover:text-white'
-                    }`}
+                  className={`px - 4 py - 2 text - xs font - bold rounded transition - all whitespace - nowrap border ${activeStyle === key
+                      ? 'bg-slate-100 text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.3)]'
+                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-600 hover:text-white'
+                    } `}
                 >
                   {preset.label}
                 </button>
@@ -354,7 +353,7 @@ function App() {
                   <button
                     key={fmt}
                     onClick={() => setTimeFormat(fmt)}
-                    className={`px-3 py-1 text-[10px] font-mono border rounded transition-colors whitespace-nowrap ${timeFormat === fmt ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white hover:border-slate-600'}`}
+                    className={`px - 3 py - 1 text - [10px] font - mono border rounded transition - colors whitespace - nowrap ${timeFormat === fmt ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white hover:border-slate-600'} `}
                   >
                     {fmt}
                   </button>
@@ -441,8 +440,8 @@ function App() {
                 ref={naiveClockRef}
                 timeFormat={timeFormat}
                 data-testid="naive-clock"
-                className={`text-5xl font-mono font-bold tracking-tighter ${isRunning ? 'text-red-500' : 'text-slate-700'
-                  }`}
+                className={`text - 5xl font - mono font - bold tracking - tighter ${isRunning ? 'text-red-500' : 'text-slate-700'
+                  } `}
               />
               <p className="mt-2 text-[10px] text-red-900 uppercase font-bold tracking-widest">Susceptible to Lag</p>
             </div>

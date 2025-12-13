@@ -1,20 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { DNMClock } from '../lib';
 import App from '../App';
 
 // We mock the child components to focus on App wiring logic
 // But we keep the real refs logic to test the connection
-vi.mock('../components/MissionClock', () => ({
-  MissionClock: ({ controllerRef }: any) => {
-    React.useImperativeHandle(controllerRef, () => ({
-      start: vi.fn(),
-      pause: vi.fn(),
-      setTime: vi.fn(),
-      adjustTime: vi.fn(),
-    }));
-    return <div data-testid="mission-clock">MissionClock</div>;
-  }
+vi.mock('../lib', () => ({
+  DNMClock: () => <div data-testid="dnm-clock">Mock Clock</div>,
 }));
 
 vi.mock('../components/NaiveClock', () => ({
@@ -37,7 +30,7 @@ describe('App Integration', () => {
   it('renders the layout and all sub-components', () => {
     render(<App />);
     expect(screen.getByText('DNM Clock')).toBeInTheDocument();
-    expect(screen.getByTestId('mission-clock')).toBeInTheDocument();
+    expect(screen.getByTestId('dnm-clock')).toBeInTheDocument();
     // We now have two naive clocks (desktop + mobile)
     expect(screen.getAllByText(/Main Thread Monitor/i).length).toBeGreaterThan(0);
   });

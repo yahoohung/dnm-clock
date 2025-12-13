@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { MissionClock } from '../MissionClock';
+import { DNMClock } from '../DNMClock';
 
 const mockWorkerPostMessage = vi.fn();
 const mockWorkerTerminate = vi.fn();
@@ -18,7 +18,7 @@ class MockWorker {
   removeEventListener = vi.fn();
 }
 
-describe('MissionClock Component', () => {
+describe('DNMClock Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resizeCallback = null;
@@ -27,9 +27,9 @@ describe('MissionClock Component', () => {
       constructor(cb: ResizeObserverCallback) {
         resizeCallback = cb;
       }
-      observe() {}
-      unobserve() {}
-      disconnect() {}
+      observe() { }
+      unobserve() { }
+      disconnect() { }
     } as any;
   });
 
@@ -38,7 +38,7 @@ describe('MissionClock Component', () => {
   });
 
   it('instantiates a Worker and transfers control of OffscreenCanvas on mount', () => {
-    const { unmount } = render(<MissionClock />);
+    const { unmount } = render(<DNMClock />);
     expect(window.URL.createObjectURL).toHaveBeenCalled();
     expect(mockWorkerPostMessage).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'INIT' }),
@@ -50,7 +50,7 @@ describe('MissionClock Component', () => {
 
   it('renders correctly without a controllerRef (Optional Prop)', () => {
     // This covers the branch `if (controllerRef) ...` being false
-    const { container } = render(<MissionClock className="custom-class" />);
+    const { container } = render(<DNMClock className="custom-class" />);
     // Check if classname is applied
     expect(container.firstChild).toHaveClass('custom-class');
     // Ensure no crash
@@ -58,7 +58,7 @@ describe('MissionClock Component', () => {
   });
 
   it('sends RESIZE message when ResizeObserver fires', () => {
-    render(<MissionClock />);
+    render(<DNMClock />);
     if (resizeCallback) {
       const mockEntry = {
         contentRect: { width: 500, height: 300 }
@@ -76,14 +76,14 @@ describe('MissionClock Component', () => {
 
   it('exposes controller methods', () => {
     const controllerRef = React.createRef<any>();
-    render(<MissionClock controllerRef={controllerRef} />);
+    render(<DNMClock controllerRef={controllerRef} />);
     controllerRef.current.start();
     expect(mockWorkerPostMessage).toHaveBeenCalledWith({ type: 'START' });
   });
 
   it('updates configuration', () => {
-    const { rerender } = render(<MissionClock config={{ showDot: false }} />);
-    rerender(<MissionClock config={{ showDot: true }} />);
+    const { rerender } = render(<DNMClock config={{ showDot: false }} />);
+    rerender(<DNMClock config={{ showDot: true }} />);
     expect(mockWorkerPostMessage).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'UPDATE_CONFIG' })
     );
