@@ -1,6 +1,6 @@
 # DNM Clock
 
-> **A high-precision, drift-free clock engine designed to maintain atomic accuracy under extreme main-thread rendering loads.**
+> **A high-precision, drift-free clock engine designed to maintain atomic accuracy under extreme main-thread rendering loads. Designed for React 18/19.**
 
 ![Status](https://img.shields.io/badge/Coverage-100%25-brightgreen)
 ![Tech](https://img.shields.io/badge/React-19-blue)
