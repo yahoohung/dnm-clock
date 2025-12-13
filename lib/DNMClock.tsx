@@ -182,7 +182,7 @@ export const DNMClock = ({
       className={`relative ${className}`}
       {...props}
       // Ensure min-height before canvas loads
-      style={{ minHeight: '1px' }}
+      style={{ minHeight: '1px', ...props.style }}
     />
   );
 };

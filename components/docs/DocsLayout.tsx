@@ -338,6 +338,24 @@ const QuickStartSection = () => (
   );
 };`} />
                 </div>
+
+                <h4 className="text-sm font-bold text-slate-500 mt-4 mb-2">Option B: Standard CSS / Inline Style</h4>
+                <p className="text-slate-400 mb-3 text-sm">
+                    No Tailwind? No problem. Use standard CSS or inline styles.
+                </p>
+                <div className="w-full">
+                    <CodeBlock language="tsx" code={`export const MyTimer = () => {
+  return (
+    <div style={{ width: '300px', height: '100px' }}>
+      {/* 
+        The clock will fill the parent container.
+        You can also pass standard style objects directly.
+      */}
+      <DNMClock style={{ width: '100%', height: '100%' }} autoStart={true}/>
+    </div>
+  );
+};`} />
+                </div>
             </div>
             <div>
                 <h3 className="text-xl font-bold text-white mb-3">4. Result</h3>
