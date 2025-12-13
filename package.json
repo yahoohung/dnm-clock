@@ -1,6 +1,6 @@
 {
   "name": "dnm-clock",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "A high-precision, drift-free 'delay-no-more' clock engine designed to maintain atomic accuracy under extreme main-thread rendering loads.",
   "type": "module",
   "files": [
