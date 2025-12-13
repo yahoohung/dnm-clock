@@ -124,6 +124,17 @@ function App() {
 
           <div className="flex items-center gap-4">
             <a
+              href="https://www.npmjs.com/package/dnm-clock"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-full hover:bg-slate-800"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M0 7.334v8h6.666v-5.333h5.333v5.333h12v-8H0zM20 13.334h-2.667v-2.667h-2.666v2.667H12v-2.667h-2.667v2.667H2.667V10h17.333v3.334z" />
+              </svg>
+              <span>NPM</span>
+            </a>
+            <a
               href="http://github.com/yahoohung/dnm-clock"
               target="_blank"
               rel="noopener noreferrer"
@@ -142,13 +153,13 @@ function App() {
         <div className="lg:col-span-8 space-y-6">
 
           {/* MASTER CLOCK DISPLAY */}
-          <div className="bg-black rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden group">
+          <div className="bg-transparent rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden group">
             {/* Glossy overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-slate-800/20 to-transparent pointer-events-none" />
 
-            <div className="relative p-8 md:p-12 flex flex-col items-center justify-center min-h-[320px]">
+            <div className="relative p-6 md:p-8 flex flex-col items-center justify-center min-h-[240px]">
 
-              <div className="w-full flex justify-between items-start absolute top-6 left-0 px-6">
+              <div className="w-full flex justify-between items-start absolute top-4 left-0 px-6 z-10">
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Master Reference</span>
                   <div className="flex items-center gap-2">
@@ -169,7 +180,7 @@ function App() {
                   data-testid="mission-clock"
                   controllerRef={clockControllerRef}
                   initialSeconds={0}
-                  className="w-full h-64" // Height is arbitrary, canvas scales
+                  className="w-full h-40" // Height is arbitrary, canvas scales
                   config={{
                     ...STYLE_PRESETS[activeStyle].config,
                     // Override color for pause state ONLY if in default mode (to match original behavior)
@@ -180,25 +191,29 @@ function App() {
 
                 {/* VIDEO PLAYER STYLE OVERLAY */}
                 <div
-                  className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isRunning ? 'opacity-0 hover:opacity-100 bg-black/30 backdrop-blur-sm' : 'opacity-100 bg-black/50 backdrop-blur-sm'}`}
+                  className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isRunning ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}
                 >
                   <button
                     onClick={isRunning ? actions.pause : actions.start}
-                    className="group relative flex items-center justify-center w-20 h-20 rounded-full bg-white/10 border-2 border-white/50 backdrop-blur-md shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 hover:bg-white/20 hover:border-white"
+                    className={`group relative flex items-center justify-center w-14 h-14 rounded-full border-2 backdrop-blur-md shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 ${activeStyle === 'minimal'
+                      ? 'bg-black/10 border-black/50 hover:bg-black/20 hover:border-black text-black'
+                      : 'bg-white/10 border-white/50 hover:bg-white/20 hover:border-white text-white'
+                      }`}
                   >
                     {isRunning ? (
-                      <svg className="w-8 h-8 text-white fill-current" viewBox="0 0 24 24">
+                      <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24">
                         <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
                       </svg>
                     ) : (
-                      <svg className="w-8 h-8 text-white fill-current ml-1" viewBox="0 0 24 24">
+                      <svg className="w-8 h-8 fill-current ml-1" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
                       </svg>
                     )}
 
                     {/* Ripple/Glow ring */}
                     {!isRunning && (
-                      <div className="absolute inset-0 rounded-full border border-white/30 animate-ping" />
+                      <div className={`absolute inset-0 rounded-full border animate-ping ${activeStyle === 'minimal' ? 'border-black/30' : 'border-white/30'
+                        }`} />
                     )}
                   </button>
                 </div>
