@@ -26,9 +26,8 @@ jobs:
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
-          # This token parameter instructs setup-node to use the OIDC mechanism 
-          # to fetch a short-lived NPM publish token from the registry.
-          token: ${{ secrets.GITHUB_TOKEN }} 
+          # We do NOT pass a token here for OIDC; setup-node handles it automatically
+          # when registry-url is set and we have id-token: write permissions.
 
       - name: Configure Git User
         run: |
@@ -69,4 +68,4 @@ jobs:
       # 6. Publish to NPM
       # The OIDC token is automatically handled by the setup-node step (step 2).
       - name: Publish to NPM (using Trusted Publisher)
-        run: npm publish --access public
+        run: npm publish --access public --provenance
