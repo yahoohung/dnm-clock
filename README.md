@@ -6,10 +6,12 @@
 ![Tech](https://img.shields.io/badge/React-19-blue)
 ![Engine](https://img.shields.io/badge/WebWorker-OffscreenCanvas-orange)
 
+[**🔴 Live Demo**](https://dnm-clock.marshallchan.com)
+
 ## ✨ New Features (v2.0)
 
 *   **Flexible Formatting:** Now supports single-digit tokens for cleaner displays:
-    *   `h:m:s` -> `1:5:9`
+    *   `h:mm:ss` -> `1:15:09`
     *   `m:ss` -> `5:00`
     *   `s` -> `60`
 *   **Countdown Engine:** Native support for counting down via `countDirection="DOWN"`.
