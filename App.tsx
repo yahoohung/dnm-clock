@@ -124,6 +124,12 @@ function App() {
 
           <div className="flex items-center gap-4">
             <a
+              href="#/docs"
+              className="px-3 py-1.5 rounded-full text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            >
+              API DOCS
+            </a>
+            <a
               href="https://www.npmjs.com/package/dnm-clock"
               target="_blank"
               rel="noopener noreferrer"
@@ -145,7 +151,7 @@ function App() {
             </a>
           </div>
         </div>
-      </nav>
+      </nav >
 
       <main className="max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
