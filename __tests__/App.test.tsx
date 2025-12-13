@@ -36,7 +36,7 @@ describe('App Integration', () => {
 
   it('renders the layout and all sub-components', () => {
     render(<App />);
-    expect(screen.getByText('DNM Broadcast Engine')).toBeInTheDocument();
+    expect(screen.getByText('DNM Clock')).toBeInTheDocument();
     expect(screen.getByTestId('mission-clock')).toBeInTheDocument();
     // We now have two naive clocks (desktop + mobile)
     expect(screen.getAllByText(/Main Thread Monitor/i).length).toBeGreaterThan(0);
