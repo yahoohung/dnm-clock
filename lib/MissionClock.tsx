@@ -17,6 +17,10 @@ export interface ClockStyleConfig {
   showDot: boolean;
   /** Time format string e.g. "hh:mm:ss", "mm:ss" (default: "hh:mm:ss") */
   timeFormat?: string;
+  /** Optional fixed font size (e.g. "20px" or 20). If omitted, scales responsively. */
+  fontSize?: string | number;
+  /** Optional font weight (e.g. "700", "bold"). Default: "bold" */
+  fontWeight?: string | number;
 }
 
 const DEFAULT_CONFIG: ClockStyleConfig = {

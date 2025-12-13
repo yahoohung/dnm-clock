@@ -47,12 +47,19 @@ function paint(displaySeconds) {
   ctx.fillStyle = config.backgroundColor;
   ctx.fillRect(0, 0, width, height);
 
-  // 3. Typography
-  // Adaptive font size based on container.
-  // [FIX] Adjusted divisor from 5 to 6.5 to prevent horizontal clipping of the glow effect
-  // and ensuring the 8-character string (00:00:00) fits comfortably with margins.
-  const fontSize = Math.min(width / 6.5, height / 1.5); 
-  ctx.font = \`bold \${fontSize}px \${config.fontFamily}\`;
+  // 50: Typography
+  // Adaptive font size based on container, unless explicit override provided.
+  let fontSize;
+  if (config.fontSize) {
+    fontSize = typeof config.fontSize === 'number' ? \`\${config.fontSize}px\` : config.fontSize;
+  } else {
+    // [FIX] Adjusted divisor from 5 to 6.5 to prevent horizontal clipping of the glow effect
+    // and ensuring the 8-character string (00:00:00) fits comfortably with margins.
+    fontSize = \`\${Math.min(width / 6.5, height / 1.5)}px\`;
+  }
+
+  const fontWeight = config.fontWeight || 'bold';
+  ctx.font = \`\${fontWeight} \${fontSize} \${config.fontFamily}\`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   

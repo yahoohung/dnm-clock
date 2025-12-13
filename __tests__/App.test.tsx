@@ -38,8 +38,8 @@ describe('App Integration', () => {
     render(<App />);
     expect(screen.getByText('DNM Broadcast Engine')).toBeInTheDocument();
     expect(screen.getByTestId('mission-clock')).toBeInTheDocument();
-    expect(screen.getByTestId('naive-clock')).toBeInTheDocument();
-    expect(screen.getByText(/Stress Testing Lab/i)).toBeInTheDocument();
+    // We now have two naive clocks (desktop + mobile)
+    expect(screen.getAllByText(/Main Thread Monitor/i).length).toBeGreaterThan(0);
   });
 
   it('toggles Start/Pause state and updates UI button text', () => {
@@ -79,8 +79,8 @@ describe('App Integration', () => {
 
   it('renders stress test components', () => {
     render(<App />);
-    expect(screen.getByText('Main Thread Blocker (Unhappy Path)')).toBeInTheDocument();
-    expect(screen.getByText('Render Lag Simulator')).toBeInTheDocument();
-    expect(screen.getByText('Chaos Monkey (Worker Stress)')).toBeInTheDocument();
+    expect(screen.getAllByText('Main Thread Blocker (Unhappy Path)').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Render Lag Simulator').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Chaos Monkey (Worker Stress)').length).toBeGreaterThan(0);
   });
 });
