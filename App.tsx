@@ -10,6 +10,7 @@ function App() {
   const naiveClockRef = useRef<NaiveClockHandle>(null);
 
   const [isRunning, setIsRunning] = useState(false);
+  const [timeFormat, setTimeFormat] = useState('hh:mm:ss');
 
   const actions = {
     start: () => {
@@ -111,7 +112,8 @@ function App() {
                   config={{
                     textColor: isRunning ? '#22c55e' : '#475569',
                     glowEffect: true,
-                    backgroundColor: 'transparent' // Let container bg show
+                    backgroundColor: 'transparent', // Let container bg show
+                    timeFormat
                   }}
                 />
               </div>
@@ -126,8 +128,8 @@ function App() {
               <button
                 onClick={isRunning ? actions.pause : actions.start}
                 className={`flex-1 rounded-lg font-bold text-lg tracking-wide shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${isRunning
-                    ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-900/20'
-                    : 'bg-green-600 hover:bg-green-500 text-white shadow-green-900/20'
+                  ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-900/20'
+                  : 'bg-green-600 hover:bg-green-500 text-white shadow-green-900/20'
                   }`}
               >
                 {isRunning ? 'PAUSE' : 'START'}
@@ -151,6 +153,30 @@ function App() {
                   {p.label}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* FORMAT CONFIGURATION */}
+          <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 flex flex-col md:flex-row items-center gap-4">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Time Format</span>
+            <div className="flex-1 flex gap-2 w-full">
+              <input
+                type="text"
+                value={timeFormat}
+                onChange={(e) => setTimeFormat(e.target.value)}
+                className="bg-slate-950 border border-slate-700 rounded px-3 py-1 text-sm font-mono text-white w-full md:w-32 focus:border-blue-500 outline-none transition-colors"
+              />
+              <div className="flex gap-1 overflow-x-auto no-scrollbar">
+                {['hh:mm:ss', 'mm:ss', 'hh:mm', 'mm', 'ss'].map(fmt => (
+                  <button
+                    key={fmt}
+                    onClick={() => setTimeFormat(fmt)}
+                    className={`px-3 py-1 text-[10px] font-mono border rounded transition-colors whitespace-nowrap ${timeFormat === fmt ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white hover:border-slate-600'}`}
+                  >
+                    {fmt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -230,6 +256,7 @@ function App() {
             <div className="p-6 flex flex-col items-center justify-center">
               <NaiveClock
                 ref={naiveClockRef}
+                timeFormat={timeFormat}
                 data-testid="naive-clock"
                 className={`text-5xl font-mono font-bold tracking-tighter ${isRunning ? 'text-red-500' : 'text-slate-700'
                   }`}

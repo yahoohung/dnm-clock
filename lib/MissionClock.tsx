@@ -15,6 +15,8 @@ export interface ClockStyleConfig {
   glowEffect: boolean;
   /** Whether to show the pulsing activity dot indicating worker status */
   showDot: boolean;
+  /** Time format string e.g. "hh:mm:ss", "mm:ss" (default: "hh:mm:ss") */
+  timeFormat?: string;
 }
 
 const DEFAULT_CONFIG: ClockStyleConfig = {
@@ -23,6 +25,7 @@ const DEFAULT_CONFIG: ClockStyleConfig = {
   fontFamily: "'Courier New', monospace",
   glowEffect: true,
   showDot: true,
+  timeFormat: 'hh:mm:ss',
 };
 
 /**

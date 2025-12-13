@@ -8,17 +8,44 @@ export interface NaiveClockHandle {
 }
 
 // Pure Helper
-const formatTime = (totalSeconds: number): string => {
+// Pure Helper
+const formatTime = (totalSeconds: number, format: string = 'hh:mm:ss'): string => {
     const absSeconds = Math.abs(totalSeconds);
-    const h = Math.floor(absSeconds / 3600);
-    const m = Math.floor((absSeconds % 3600) / 60);
-    const s = Math.floor(absSeconds % 60);
-    const prefix = totalSeconds < 0 ? '-' : '';
-    return `${prefix}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    const hasHours = format.includes('hh');
+    const hasMinutes = format.includes('mm');
+    const hasSeconds = format.includes('ss');
+
+    let remaining = absSeconds;
+    let h = 0, m = 0, s = 0;
+
+    if (hasHours) {
+        h = Math.floor(remaining / 3600);
+        remaining %= 3600;
+    }
+
+    if (hasMinutes) {
+        m = Math.floor(remaining / 60);
+        remaining %= 60;
+    }
+
+    if (hasSeconds) {
+        s = remaining;
+    }
+
+    const hStr = h < 60 ? h.toString().padStart(2, '0') : h.toString(); // Naive doesn't have DIGITS cache
+    const mStr = m.toString().padStart(2, '0');
+    const sStr = s.toString().padStart(2, '0');
+
+    let timeText = format
+        .replace('hh', hStr)
+        .replace('mm', mStr)
+        .replace('ss', sStr);
+
+    return totalSeconds < 0 ? '-' + timeText : timeText;
 };
 
-export const NaiveClock = forwardRef<NaiveClockHandle, React.HTMLAttributes<HTMLDivElement> & { className?: string }>(({ className, ...props }, ref) => {
-    const [displayTime, setDisplayTime] = useState("00:00:00");
+export const NaiveClock = forwardRef<NaiveClockHandle, React.HTMLAttributes<HTMLDivElement> & { className?: string, timeFormat?: string }>(({ className, timeFormat = 'hh:mm:ss', ...props }, ref) => {
+    const [displayTime, setDisplayTime] = useState(formatTime(0, timeFormat)); // Initial state
     const [isRunning, setIsRunning] = useState(false);
 
     // Internal mutable state for time calculation
@@ -46,7 +73,7 @@ export const NaiveClock = forwardRef<NaiveClockHandle, React.HTMLAttributes<HTML
             if (isRunning) {
                 state.current.startTime = Date.now();
             }
-            setDisplayTime(formatTime(seconds));
+            setDisplayTime(formatTime(seconds, timeFormat));
         },
         adjustTime: (delta: number) => {
             state.current.baseTime += delta * 1000;
@@ -55,7 +82,7 @@ export const NaiveClock = forwardRef<NaiveClockHandle, React.HTMLAttributes<HTML
             const diff = isRunning ? (now - state.current.startTime) : 0;
             const totalMs = state.current.baseTime + diff;
             const totalSec = Math.floor(totalMs / 1000);
-            setDisplayTime(formatTime(totalSec));
+            setDisplayTime(formatTime(totalSec, timeFormat));
         }
     }));
 
@@ -72,11 +99,19 @@ export const NaiveClock = forwardRef<NaiveClockHandle, React.HTMLAttributes<HTML
             const diff = now - state.current.startTime;
             const totalMs = state.current.baseTime + diff;
             const totalSec = Math.floor(totalMs / 1000);
-            setDisplayTime(formatTime(totalSec));
+            setDisplayTime(formatTime(totalSec, timeFormat));
         }, 50); // 20fps update
 
         return () => clearInterval(intervalId);
-    }, [isRunning]);
+    }, [isRunning, timeFormat]);
+
+    // Update display when format changes while paused
+    useEffect(() => {
+        if (!isRunning) {
+            const totalSec = Math.floor(state.current.baseTime / 1000);
+            setDisplayTime(formatTime(totalSec, timeFormat));
+        }
+    }, [timeFormat, isRunning]);
 
     return (
         <div className={`font-mono tabular-nums ${className}`} {...props}>

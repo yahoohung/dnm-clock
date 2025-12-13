@@ -35,11 +35,39 @@ export type TimerActions = {
 // -----------------------------------------------------------------------------
 // 3. Pure Helper Functions
 // -----------------------------------------------------------------------------
-const formatTime = (totalSeconds: number): string => {
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = Math.floor(totalSeconds % 60);
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+const formatTime = (totalSeconds: number, format: string = 'hh:mm:ss'): string => {
+  const absSeconds = Math.abs(totalSeconds);
+  const hasHours = format.includes('hh');
+  const hasMinutes = format.includes('mm');
+  const hasSeconds = format.includes('ss');
+
+  let remaining = absSeconds;
+  let h = 0, m = 0, s = 0;
+
+  if (hasHours) {
+    h = Math.floor(remaining / 3600);
+    remaining %= 3600;
+  }
+
+  if (hasMinutes) {
+    m = Math.floor(remaining / 60);
+    remaining %= 60;
+  }
+
+  if (hasSeconds) {
+    s = remaining;
+  }
+
+  const hStr = h.toString().padStart(2, '0');
+  const mStr = m.toString().padStart(2, '0');
+  const sStr = s.toString().padStart(2, '0');
+
+  let timeText = format
+    .replace('hh', hStr)
+    .replace('mm', mStr)
+    .replace('ss', sStr);
+
+  return totalSeconds < 0 ? '-' + timeText : timeText;
 };
 
 // -----------------------------------------------------------------------------
@@ -69,25 +97,25 @@ const formatTime = (totalSeconds: number): string => {
  * );
  * ```
  */
-export const useBroadcastMatchTimer = (initialSeconds: number = 0): TimerState & TimerActions => {
-  
+export const useBroadcastMatchTimer = (initialSeconds: number = 0, timeFormat: string = 'hh:mm:ss'): TimerState & TimerActions => {
+
   // The Store: Holds the "Single Source of Truth" outside of React's Render Cycle
   const store = useRef({
     // Data Model
     baseDurationMs: initialSeconds * 1000,
     startTimeMs: 0,
     isRunning: false,
-    
+
     // Snapshot for React (Cache)
     snapshot: {
-      displayTime: formatTime(initialSeconds),
+      displayTime: formatTime(initialSeconds, timeFormat),
       totalSeconds: initialSeconds,
       isRunning: false
     },
 
     // Worker Reference
     worker: null as Worker | null,
-    
+
     // Subscription Management
     listeners: new Set<() => void>(),
   });
@@ -95,12 +123,12 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0): TimerState &
   // ---------------------------------------------------------------------------
   // Internal Logic: The "Brain"
   // ---------------------------------------------------------------------------
-  
+
   const calculateState = useCallback(() => {
     const { isRunning, baseDurationMs, startTimeMs } = store.current;
-    
+
     let currentTotalMs = baseDurationMs;
-    
+
     if (isRunning) {
       // Delta Calculation: (Now - Start) + Base
       // Using performance.now() for monotonic guarantee
@@ -108,21 +136,25 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0): TimerState &
       currentTotalMs += (now - startTimeMs);
     }
 
-    const totalSeconds = Math.max(0, Math.floor(currentTotalMs / 1000));
+    const totalSeconds = Math.floor(currentTotalMs / 1000);
     return {
       totalSeconds,
-      displayTime: formatTime(totalSeconds),
+      displayTime: formatTime(totalSeconds, timeFormat),
       isRunning
     };
-  }, []);
+  }, [timeFormat]);
 
   const emitChange = useCallback(() => {
     const newState = calculateState();
     const oldState = store.current.snapshot;
 
-    // Optimisation: Only notify React if the "visible second" or "running state" changed.
-    // This filters out the 50ms worker ticks that occur within the same second.
-    if (newState.totalSeconds !== oldState.totalSeconds || newState.isRunning !== oldState.isRunning) {
+    // Optimisation: Only notify React if:
+    // 1. The visible second changed
+    // 2. The running state changed
+    // 3. The display format changed (leading to different string)
+    if (newState.totalSeconds !== oldState.totalSeconds ||
+      newState.isRunning !== oldState.isRunning ||
+      newState.displayTime !== oldState.displayTime) {
       store.current.snapshot = newState;
       store.current.listeners.forEach(listener => listener());
     }
@@ -131,7 +163,7 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0): TimerState &
   // ---------------------------------------------------------------------------
   // External Store Integration (React 18+)
   // ---------------------------------------------------------------------------
-  
+
   const subscribe = useCallback((listener: () => void) => {
     store.current.listeners.add(listener);
     return () => store.current.listeners.delete(listener);
@@ -144,7 +176,7 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0): TimerState &
   // ---------------------------------------------------------------------------
   // Worker Lifecycle (Resource Safety)
   // ---------------------------------------------------------------------------
-  
+
   useEffect(() => {
     let workerUrl: string | null = null;
 
@@ -161,7 +193,7 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0): TimerState &
           emitChange();
         }
       };
-      
+
     } catch (err) {
       console.error('Clock Worker Init Failed:', err);
     }
@@ -171,6 +203,13 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0): TimerState &
       store.current.worker?.terminate();
       if (workerUrl) URL.revokeObjectURL(workerUrl);
     };
+  }, [emitChange]);
+
+  // ---------------------------------------------------------------------------
+  // Reactivity: Handle Prop Changes
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    emitChange();
   }, [emitChange]);
 
   // ---------------------------------------------------------------------------
@@ -195,24 +234,24 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0): TimerState &
     const now = performance.now();
     s.baseDurationMs += (now - s.startTimeMs);
     s.isRunning = false;
-    
+
     s.worker?.postMessage({ type: 'STOP' });
     emitChange();
   }, [emitChange]);
 
   const setTime = useCallback((seconds: number) => {
     const s = store.current;
-    
+
     // Atomic Update:
     // 1. Update the base time
     s.baseDurationMs = seconds * 1000;
-    
+
     // 2. Phase Reset: If running, reset the start anchor to NOW.
     // This aligns the .000ms boundary to this exact button press.
     if (s.isRunning) {
       s.startTimeMs = performance.now();
     }
-    
+
     emitChange(); // Force immediate update
   }, [emitChange]);
 

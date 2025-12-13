@@ -57,16 +57,49 @@ function paint(displaySeconds) {
   ctx.textBaseline = 'middle';
   
   // 4. Time String Composition (Zero GC)
-  // [OPTIMISATION] Use lookup table instead of real-time formatting
-  // Handle negative time gracefully (optional, but good for robustness)
   const absSeconds = Math.abs(displaySeconds);
-  const h = DIGITS[Math.floor(absSeconds / 3600) % 60]; 
-  const m = DIGITS[Math.floor((absSeconds % 3600) / 60)];
-  const s = DIGITS[Math.floor(absSeconds % 60)];
+  const format = config.timeFormat || 'hh:mm:ss';
   
-  // Simple prefix for negative if needed, though usually match timers are positive
-  const prefix = displaySeconds < 0 ? '-' : '';
-  const timeText = \`\${prefix}\${h}:\${m}:\${s}\`;
+  // Parse format requirements
+  const hasHours = format.includes('hh');
+  const hasMinutes = format.includes('mm');
+  const hasSeconds = format.includes('ss');
+
+  let remaining = absSeconds;
+  
+  // Calculate values
+  let h = 0, m = 0, s = 0;
+
+  if (hasHours) {
+    h = Math.floor(remaining / 3600);
+    remaining %= 3600;
+  }
+
+  if (hasMinutes) {
+    m = Math.floor(remaining / 60);
+    remaining %= 60;
+  }
+
+  if (hasSeconds) {
+    s = remaining;
+  }
+
+  // Format strings (using cache if possible)
+  const hStr = h < 60 ? DIGITS[h] : h.toString().padStart(2, '0');
+  const mStr = m < 60 ? DIGITS[m] : m.toString().padStart(2, '0');
+  const sStr = s < 60 ? DIGITS[s] : s.toString().padStart(2, '0');
+
+  // Replace tokens
+  // Note: Simple replaceAll is sufficient since tokens are unique enough
+  let timeText = format
+    .replace('hh', hStr)
+    .replace('mm', mStr)
+    .replace('ss', sStr);
+  
+  // Simple prefix for negative
+  if (displaySeconds < 0) {
+    timeText = '-' + timeText;
+  }
 
   // 5. Draw Text
   ctx.fillStyle = config.textColor;
