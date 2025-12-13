@@ -6,6 +6,16 @@
 ![Tech](https://img.shields.io/badge/React-19-blue)
 ![Engine](https://img.shields.io/badge/WebWorker-OffscreenCanvas-orange)
 
+## ✨ New Features (v2.0)
+
+*   **Flexible Formatting:** Now supports single-digit tokens for cleaner displays:
+    *   `h:m:s` -> `1:5:9`
+    *   `m:ss` -> `5:00`
+    *   `s` -> `60`
+*   **Countdown Engine:** Native support for counting down via `countDirection="DOWN"`.
+*   **Stop-At-Zero:** Automatically stops the clock when it reaches `0` using `stopAtZero={true}`.
+*   **Auto-Start:** simplified control with `autoStart={true}`.
+
 ## 🎯 The Problem
 
 In standard React applications, timers rely on the **Main Thread**. This is the same thread responsible for:
@@ -42,6 +52,22 @@ The application includes a suite of tools designed to break standard React timer
 
 ---
 
+## 🌏 Browser Support
+
+This library relies on **OffscreenCanvas** and **Web Workers**.
+
+| Browser | Version |
+| :--- | :--- |
+| **Chrome / Edge** | 69+ |
+| **Firefox** | 105+ |
+| **Safari** | 16.4+ |
+
+## 🔌 Framework Support
+
+*   **Primary Support:** React 18+ (Peer Dependency)
+*   **Engine Core:** Framework Agnostic (Worker + OffscreenCanvas). 
+    *Wrapper required for Vue/Svelte/Angular.*
+
 ## 🛠 Usage & Verification
 
 ### Installation
@@ -49,6 +75,24 @@ The application includes a suite of tools designed to break standard React timer
 ```bash
 npm install
 npm run dev
+```
+
+### Component Usage
+
+```tsx
+import { MissionClock } from 'dnm-clock';
+
+<MissionClock 
+  initialSeconds={60}
+  countDirection="DOWN"
+  stopAtZero={true}
+  autoStart={true}
+  config={{
+    timeFormat: 'm:ss', // Displays "1:00" -> "0:59"
+    textColor: '#ff0000',
+    fontFamily: 'monospace'
+  }}
+/>
 ```
 
 ### Running the Comparison

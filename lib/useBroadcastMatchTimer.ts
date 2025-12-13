@@ -15,6 +15,8 @@ export type TimerState = {
   totalSeconds: number;
   /** Indicates whether the timer is currently active and counting */
   isRunning: boolean;
+  /** Direction of the count: 'UP' (default) or 'DOWN' */
+  countDirection: 'UP' | 'DOWN';
 };
 
 /**
@@ -30,6 +32,11 @@ export type TimerActions = {
    * @param seconds - The target time in seconds
    */
   setTime: (seconds: number) => void;
+  /**
+   * Sets the counting direction.
+   * @param direction - 'UP' or 'DOWN'
+   */
+  setDirection: (direction: 'UP' | 'DOWN') => void;
 };
 
 // -----------------------------------------------------------------------------
@@ -105,12 +112,14 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0, timeFormat: s
     baseDurationMs: initialSeconds * 1000,
     startTimeMs: 0,
     isRunning: false,
+    countDirection: 'UP' as 'UP' | 'DOWN',
 
     // Snapshot for React (Cache)
     snapshot: {
       displayTime: formatTime(initialSeconds, timeFormat),
       totalSeconds: initialSeconds,
-      isRunning: false
+      isRunning: false,
+      countDirection: 'UP' as 'UP' | 'DOWN'
     },
 
     // Worker Reference
@@ -125,22 +134,29 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0, timeFormat: s
   // ---------------------------------------------------------------------------
 
   const calculateState = useCallback(() => {
-    const { isRunning, baseDurationMs, startTimeMs } = store.current;
+    const { isRunning, baseDurationMs, startTimeMs, countDirection } = store.current;
 
     let currentTotalMs = baseDurationMs;
 
     if (isRunning) {
-      // Delta Calculation: (Now - Start) + Base
-      // Using performance.now() for monotonic guarantee
+      // Delta Calculation: (Now - Start)
       const now = performance.now();
-      currentTotalMs += (now - startTimeMs);
+      const delta = now - startTimeMs;
+
+      // Apply direction
+      if (countDirection === 'UP') {
+        currentTotalMs += delta;
+      } else {
+        currentTotalMs -= delta;
+      }
     }
 
     const totalSeconds = Math.floor(currentTotalMs / 1000);
     return {
       totalSeconds,
       displayTime: formatTime(totalSeconds, timeFormat),
-      isRunning
+      isRunning,
+      countDirection
     };
   }, [timeFormat]);
 
@@ -152,9 +168,11 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0, timeFormat: s
     // 1. The visible second changed
     // 2. The running state changed
     // 3. The display format changed (leading to different string)
+    // 4. The direction changed
     if (newState.totalSeconds !== oldState.totalSeconds ||
       newState.isRunning !== oldState.isRunning ||
-      newState.displayTime !== oldState.displayTime) {
+      newState.displayTime !== oldState.displayTime ||
+      newState.countDirection !== oldState.countDirection) {
       store.current.snapshot = newState;
       store.current.listeners.forEach(listener => listener());
     }
@@ -232,7 +250,14 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0, timeFormat: s
 
     // Freeze the elapsed time into baseDuration
     const now = performance.now();
-    s.baseDurationMs += (now - s.startTimeMs);
+    const delta = now - s.startTimeMs;
+
+    if (s.countDirection === 'UP') {
+      s.baseDurationMs += delta;
+    } else {
+      s.baseDurationMs -= delta;
+    }
+
     s.isRunning = false;
 
     s.worker?.postMessage({ type: 'STOP' });
@@ -255,6 +280,31 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0, timeFormat: s
     emitChange(); // Force immediate update
   }, [emitChange]);
 
+  const setDirection = useCallback((direction: 'UP' | 'DOWN') => {
+    const s = store.current;
+    if (s.countDirection === direction) return;
+
+    // 1. Calculate current exact time
+    let currentTotalMs = s.baseDurationMs;
+    if (s.isRunning) {
+      const now = performance.now();
+      const delta = now - s.startTimeMs;
+      if (s.countDirection === 'UP') {
+        currentTotalMs += delta;
+      } else {
+        currentTotalMs -= delta;
+      }
+      // Reset start time to now effectively "re-basing" the calculation
+      s.startTimeMs = now;
+    }
+
+    // 2. Update state
+    s.baseDurationMs = currentTotalMs;
+    s.countDirection = direction;
+
+    emitChange();
+  }, [emitChange]);
+
   // ---------------------------------------------------------------------------
   // Return Sync External Store State
   // ---------------------------------------------------------------------------
@@ -264,6 +314,7 @@ export const useBroadcastMatchTimer = (initialSeconds: number = 0, timeFormat: s
     ...state,
     start,
     pause,
-    setTime
+    setTime,
+    setDirection
   };
 };

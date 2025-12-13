@@ -15,7 +15,7 @@ export interface ClockStyleConfig {
   glowEffect: boolean;
   /** Whether to show the pulsing activity dot indicating worker status */
   showDot: boolean;
-  /** Time format string e.g. "hh:mm:ss", "mm:ss" (default: "hh:mm:ss") */
+  /** Time format string e.g. "hh:mm:ss", "mm:ss", "m:ss", "s" (default: "hh:mm:ss") */
   timeFormat?: string;
   /** Optional fixed font size (e.g. "20px" or 20). If omitted, scales responsively. */
   fontSize?: string | number;
@@ -48,6 +48,12 @@ export interface MissionClockProps extends React.HTMLAttributes<HTMLDivElement> 
    * Useful when controlling the clock from a parent component or external store.
    */
   controllerRef?: React.MutableRefObject<any>;
+  /** Automatically start the clock when the component mounts */
+  autoStart?: boolean;
+  /** Initial counting direction (default: 'UP') */
+  countDirection?: 'UP' | 'DOWN';
+  /** Whether to stop automatically when reaching zero (default: false) */
+  stopAtZero?: boolean;
 }
 
 export const MissionClock = ({
@@ -55,6 +61,9 @@ export const MissionClock = ({
   config = {},
   className = "",
   controllerRef,
+  autoStart = false,
+  countDirection = 'UP',
+  stopAtZero = false,
   ...props
 }: MissionClockProps) => {
 
@@ -95,11 +104,17 @@ export const MissionClock = ({
         payload: {
           canvas: offscreen,
           config: activeConfig,
-          initialSeconds
+          initialSeconds,
+          countDirection,
+          stopAtZero
         }
       },
       [offscreen]
     );
+
+    if (autoStart) {
+      worker.postMessage({ type: 'START' });
+    }
 
     // ResizeObserver: Watch container size
     const observer = new ResizeObserver((entries) => {
@@ -129,6 +144,10 @@ export const MissionClock = ({
         adjustTime: (delta: number) => worker.postMessage({
           type: 'ADJUST_TIME',
           payload: { deltaSeconds: delta }
+        }),
+        setDirection: (direction: 'UP' | 'DOWN') => worker.postMessage({
+          type: 'SET_DIRECTION',
+          payload: { direction } // 'UP' or 'DOWN'
         })
       };
     }

@@ -7,6 +7,7 @@
  */
 
 // Note: We export as string to ensure portability without bundler reliance for worker loading
+// Note: We export as string to ensure portability without bundler reliance for worker loading
 export const CLOCK_WORKER_SCRIPT = `
 // -- Global Scope --
 let canvas = null;
@@ -25,6 +26,8 @@ const state = {
   width: 0,
   height: 0,
   dpr: 1,
+  countDirection: 1, // 1 for UP, -1 for DOWN
+  stopAtZero: false,
   config: {
     backgroundColor: '#0f172a',
     textColor: '#22c55e',
@@ -67,10 +70,10 @@ function paint(displaySeconds) {
   const absSeconds = Math.abs(displaySeconds);
   const format = config.timeFormat || 'hh:mm:ss';
   
-  // Parse format requirements
-  const hasHours = format.includes('hh');
-  const hasMinutes = format.includes('mm');
-  const hasSeconds = format.includes('ss');
+  // Parse format requirements - Check for ANY presence of time units
+  const hasHours = format.includes('h');
+  const hasMinutes = format.includes('m');
+  const hasSeconds = format.includes('s');
 
   let remaining = absSeconds;
   
@@ -91,17 +94,25 @@ function paint(displaySeconds) {
     s = remaining;
   }
 
-  // Format strings (using cache if possible)
-  const hStr = h < 60 ? DIGITS[h] : h.toString().padStart(2, '0');
-  const mStr = m < 60 ? DIGITS[m] : m.toString().padStart(2, '0');
-  const sStr = s < 60 ? DIGITS[s] : s.toString().padStart(2, '0');
+  // Format strings
+  // Double digits (padded)
+  const hhStr = h < 60 ? DIGITS[h] : h.toString().padStart(2, '0');
+  const mmStr = m < 60 ? DIGITS[m] : m.toString().padStart(2, '0');
+  const ssStr = s < 60 ? DIGITS[s] : s.toString().padStart(2, '0');
+  
+  // Single digits (unpadded)
+  const hStr = h.toString();
+  const mStr = m.toString();
+  const sStr = s.toString();
 
-  // Replace tokens
-  // Note: Simple replaceAll is sufficient since tokens are unique enough
+  // Replace tokens - CRITICAL: Replace double digits FIRST to avoid partial matches
   let timeText = format
-    .replace('hh', hStr)
-    .replace('mm', mStr)
-    .replace('ss', sStr);
+    .replace('hh', hhStr)
+    .replace('mm', mmStr)
+    .replace('ss', ssStr)
+    .replace('h', hStr)
+    .replace('m', mStr)
+    .replace('s', sStr);
   
   // Simple prefix for negative
   if (displaySeconds < 0) {
@@ -139,7 +150,22 @@ function loop() {
 
   const now = performance.now();
   const elapsedMs = now - state.startTimeMs;
-  const totalMs = state.baseTimeMs + elapsedMs;
+  
+  // Apply direction to the elapsed time
+  // If UP (1): total = base + elapsed
+  // If DOWN (-1): total = base - elapsed
+  let totalMs = state.baseTimeMs + (elapsedMs * state.countDirection);
+
+  // Stop at zero check
+  if (state.stopAtZero && state.countDirection === -1 && totalMs <= 0) {
+      totalMs = 0;
+      state.isRunning = false;
+      state.baseTimeMs = 0;
+      state.lastRenderedSecond = 0;
+      paint(0);
+      return; 
+  }
+  
   const currentSecond = Math.floor(totalMs / 1000);
 
   // [OPTIMISATION] Dirty Check: Only paint if the second has changed
@@ -165,7 +191,10 @@ self.onmessage = function(e) {
       
       state.config = payload.config;
       state.baseTimeMs = payload.initialSeconds * 1000;
+      state.baseTimeMs = payload.initialSeconds * 1000;
       state.lastRenderedSecond = payload.initialSeconds;
+      state.countDirection = payload.countDirection === 'DOWN' ? -1 : 1;
+      state.stopAtZero = payload.stopAtZero;
       
       // [FIX] Initialize dimensions from canvas to ensure first paint works
       if (canvas) {
@@ -209,7 +238,10 @@ self.onmessage = function(e) {
       if (!state.isRunning) return;
       state.isRunning = false;
       if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
-      state.baseTimeMs += (performance.now() - state.startTimeMs);
+      
+      // Accumulate elapsed time correctly based on direction
+      const elapsed = performance.now() - state.startTimeMs;
+      state.baseTimeMs += (elapsed * state.countDirection);
       break;
 
     case 'SET_TIME':
@@ -221,6 +253,25 @@ self.onmessage = function(e) {
       paint(payload.seconds);
       break;
 
+    case 'SET_DIRECTION':     
+      const newDirection = payload.direction === 'UP' ? 1 : -1;
+      if (state.countDirection === newDirection) return;
+
+      // Consolidate current time before switching
+      if (state.isRunning) {
+        const now = performance.now();
+        const elapsed = now - state.startTimeMs;
+        state.baseTimeMs += (elapsed * state.countDirection);
+        state.startTimeMs = now; // Reset anchor
+      }
+
+      state.countDirection = newDirection;
+      
+      // Force repaint to reflect any immediate calculation diffs?
+      // Actually baseTimeMs is exact now, so valid.
+      // But if we are paused, no visual change until start or setTime.
+      break;
+
     case 'ADJUST_TIME':
       // payload.deltaSeconds can be positive or negative
       state.baseTimeMs += payload.deltaSeconds * 1000;
@@ -228,7 +279,8 @@ self.onmessage = function(e) {
       // Calculate current total immediately for UI feedback
       let currentTotalMs = state.baseTimeMs;
       if (state.isRunning) {
-        currentTotalMs += (performance.now() - state.startTimeMs);
+        const elapsed = performance.now() - state.startTimeMs;
+        currentTotalMs += (elapsed * state.countDirection);
       }
       
       const newSecond = Math.floor(currentTotalMs / 1000);

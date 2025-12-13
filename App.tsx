@@ -68,6 +68,7 @@ function App() {
   const [isRunning, setIsRunning] = useState(false);
   const [timeFormat, setTimeFormat] = useState('hh:mm:ss');
   const [activeStyle, setActiveStyle] = useState('default');
+  const [countDirection, setCountDirection] = useState<'UP' | 'DOWN'>('UP');
 
   const actions = {
     start: () => {
@@ -91,6 +92,9 @@ function App() {
       clockControllerRef.current?.adjustTime(delta);
       naiveClockRef.current?.adjustTime(delta);
       mobileNaiveClockRef.current?.adjustTime(delta);
+    },
+    setDirection: (direction: 'UP' | 'DOWN') => {
+      clockControllerRef.current?.setDirection(direction);
     }
   };
 
@@ -298,6 +302,21 @@ function App() {
                   {p.label}
                 </button>
               ))}
+
+              {/* Direction Toggle */}
+              <button
+                onClick={() => {
+                  const newDir = countDirection === 'UP' ? 'DOWN' : 'UP';
+                  setCountDirection(newDir);
+                  actions.setDirection(newDir);
+                }}
+                className={`flex-1 min-w-[80px] py-3 text-xs font-mono font-bold border rounded transition-colors ${countDirection === 'DOWN'
+                  ? 'bg-orange-900/30 text-orange-400 border-orange-900/50 hover:bg-orange-900/50'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-white'
+                  }`}
+              >
+                {countDirection === 'UP' ? 'Count UP' : 'Count DOWN'}
+              </button>
             </div>
           </div>
 

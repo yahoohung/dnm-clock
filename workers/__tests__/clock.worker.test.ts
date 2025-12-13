@@ -218,4 +218,36 @@ describe('Worker Logic (Headless Simulation)', () => {
     expect(mockCanvas.width).toBe(200);
     expect(mockCtx.fillText).toHaveBeenLastCalledWith('00:00:10', 100, 100);
   });
+
+  it('handles countdown correctly (SET_DIRECTION)', () => {
+    loadWorkerScript();
+
+    // 1. Init at 10s
+    mockSelf.onmessage({
+      data: {
+        type: 'INIT',
+        payload: {
+          canvas: { getContext: () => mockCtx, width: 800, height: 600 },
+          config: {},
+          initialSeconds: 10
+        }
+      }
+    });
+
+    // 2. Set Direction DOWN
+    mockSelf.onmessage({
+      data: { type: 'SET_DIRECTION', payload: { direction: 'DOWN' } }
+    });
+
+    // 3. Start
+    mockSelf.onmessage({ data: { type: 'START' } });
+
+    // 4. Advance 3s
+    (performance.now as any).mockReturnValue(3000);
+    vi.advanceTimersByTime(3000);
+    triggerNextFrame();
+
+    // Should be 10 - 3 = 7
+    expect(mockCtx.fillText).toHaveBeenLastCalledWith('00:00:07', expect.any(Number), expect.any(Number));
+  });
 });

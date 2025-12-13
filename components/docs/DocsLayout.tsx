@@ -127,27 +127,168 @@ export const DocsLayout = () => {
 // --- SECTIONS ---
 
 const IntroSection = () => (
-    <div className="space-y-6 animate-in fade-in duration-500">
-        <h1 className="text-4xl font-bold text-white mb-4">Introduction</h1>
-        <p className="text-lg leading-relaxed text-slate-400">
-            <strong className="text-white">dnm-clock</strong> is a high-precision, drift-free clock engine designed specifically for modern React applications.
-            It solves the fundamental problem of using <code>setInterval</code> or <code>requestAnimationFrame</code> on the main thread:
-            <span className="text-red-400 font-bold"> Jitter and Drift.</span>
-        </p>
+    <div className="space-y-12 animate-in fade-in duration-500">
+        {/* HEADER */}
+        <div>
+            <h1 className="text-4xl font-bold text-white mb-4">Introduction</h1>
+            <p className="text-lg leading-relaxed text-slate-400">
+                <strong className="text-white">dnm-clock</strong> is a specialized timing engine created for one purpose: <br />
+                To provide <span className="text-blue-400 font-bold">Broadcast-Grade Precision</span> in a browser environment.
+            </p>
+        </div>
 
-        <div className="grid md:grid-cols-2 gap-6 my-8">
-            <div className="p-6 bg-slate-900/50 rounded-xl border border-slate-800">
-                <h3 className="text-white font-bold mb-2">🚫 The Problem</h3>
-                <p className="text-sm text-slate-400">
-                    React's render cycle, garbage collection, and heavy DOM updates block the main thread.
-                    A simple <code>setInterval(1000)</code> will inevitably drift, losing seconds over time.
+        {/* THE PROBLEM */}
+        <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-white">🚧 The Main Thread Problem</h2>
+            <p className="text-slate-400 leading-relaxed">
+                In modern JavaScript frameworks (React, Vue, etc.), the "Main Thread" is overcrowded. It handles:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-slate-400 ml-4">
+                <li>JavaScript Logic & State Updates</li>
+                <li>DOM Reconciliation (Diffing)</li>
+                <li>User Interactions (Clicks, Inputs)</li>
+                <li>CSS Layout & Painting</li>
+            </ul>
+            <div className="bg-red-900/10 border border-red-900/30 p-4 rounded-lg mt-4">
+                <p className="text-red-300 text-sm">
+                    <strong>The Consequence:</strong> If a standard <code>setInterval</code> fires while React is rendering a large list, the timer event is delayed.
+                    This causes the displayed time to "stutter" or drift, sometimes skipping entire seconds.
                 </p>
             </div>
-            <div className="p-6 bg-blue-900/10 rounded-xl border border-blue-500/20">
-                <h3 className="text-blue-400 font-bold mb-2">✅ The Solution</h3>
-                <p className="text-sm text-slate-400">
-                    <strong className="text-white">dnm-clock</strong> moves the entire timing logic to a <strong>Web Worker</strong>.
-                    It renders the clock visuals using an <strong>OffscreenCanvas</strong>, completely bypassing the React Render Cycle.
+        </div>
+
+        {/* THE SOLUTION */}
+        <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-white">⚡ The Worker Solution</h2>
+            <p className="text-slate-400 leading-relaxed">
+                <strong className="text-white">dnm-clock</strong> bypasses the Main Thread entirely using a "Dual-Architecture" approach:
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-6 mt-6">
+                <div className="p-6 bg-slate-800/50 border border-slate-700 rounded-xl">
+                    <h3 className="text-lg font-bold text-blue-400 mb-2">1. Dedicated Worker</h3>
+                    <p className="text-sm text-slate-400">
+                        The timing logic lives in a <a href="https://www.w3.org/TR/workers/" target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline decoration-1 underline-offset-2">Web Worker</a>. This thread runs in parallel to your UI. Even if your React app freezes completely, the worker keeps running at full speed.
+                    </p>
+                </div>
+                <div className="p-6 bg-slate-800/50 border border-slate-700 rounded-xl">
+                    <h3 className="text-lg font-bold text-purple-400 mb-2">2. Offscreen Rendering</h3>
+                    <p className="text-sm text-slate-400">
+                        Instead of updating React State (which triggers re-renders), the worker paints directly to an <a href="https://www.w3.org/TR/offscreencanvas/" target="_blank" rel="noopener noreferrer" className="text-purple-300 hover:text-purple-200 underline decoration-1 underline-offset-2">OffscreenCanvas</a>. The browser performs a zero-copy transfer of these pixels to the screen.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {/* DEEP DIVE */}
+        <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-white">🧠 Under the Hood</h2>
+            <p className="text-slate-400">
+                How we achieve <strong>Drift-Free</strong> accuracy:
+            </p>
+
+            <div className="space-y-6">
+                <div>
+                    <h3 className="text-white font-bold text-lg mb-2">Self-Correcting Math</h3>
+                    <p className="text-slate-400 text-sm mb-2">
+                        We never use <code>setInterval(fn, 1000)</code>. Instead, we use a <code>requestAnimationFrame</code> loop that calculates the exact time every frame:
+                    </p>
+                    <div className="bg-[#1e1e1e] p-4 rounded-lg border border-slate-700 font-mono text-xs text-blue-300">
+                        elapsed = performance.now() - startTime;<br />
+                        current = baseTime + elapsed;
+                    </div>
+                    <p className="text-slate-500 text-xs mt-2 italic">
+                        If the browser lags for 500ms, the next frame simply jumps strictly to the correct time. Errors never accumulate.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 className="text-white font-bold text-lg mb-2">Zero-Allocation Loop</h3>
+                    <p className="text-slate-400 text-sm">
+                        The rendering loop is carefully written to create <strong>Zero Garbage</strong>. All strings ("01", "02"...) are pre-allocated.
+                        This prevents the JavaScript Garbage Collector from pausing the clock to clean up memory.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {/* USE CASES */}
+        <div className="space-y-4 pb-10">
+            <h2 className="text-2xl font-bold text-white">🚀 Ideal Use Cases</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-slate-900 rounded border border-slate-800">
+                    <div className="text-2xl mb-2">⚽</div>
+                    <h4 className="font-bold text-white mb-1">Sports Graphics</h4>
+                    <p className="text-xs text-slate-500">Live match timers that must match the TV broadcast feed exactly.</p>
+                </div>
+                <div className="p-4 bg-slate-900 rounded border border-slate-800">
+                    <div className="text-2xl mb-2">📉</div>
+                    <h4 className="font-bold text-white mb-1">Trading Desks</h4>
+                    <p className="text-xs text-slate-500">Market opening countdowns where timing is financial law.</p>
+                </div>
+                <div className="p-4 bg-slate-900 rounded border border-slate-800">
+                    <div className="text-2xl mb-2">🎮</div>
+                    <h4 className="font-bold text-white mb-1">Live Gaming</h4>
+                    <p className="text-xs text-slate-500">Speed-run timers or tournament clocks overlaying heavy game UIs.</p>
+                </div>
+            </div>
+        </div>
+        {/* BROWSER SUPPORT */}
+        <div className="pb-10 border-t border-slate-800 pt-10">
+            <h2 className="text-2xl font-bold text-white mb-6">🌏 Browser Support</h2>
+            <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-800/50">
+                <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-900 text-slate-400">
+                        <tr>
+                            <th className="p-4">Browser</th>
+                            <th className="p-4">Version</th>
+                            <th className="p-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700 text-slate-300">
+                        <tr>
+                            <td className="p-4 font-bold text-white">Chrome / Edge</td>
+                            <td className="p-4 font-mono">69+</td>
+                            <td className="p-4 text-green-400">Fully Supported</td>
+                        </tr>
+                        <tr>
+                            <td className="p-4 font-bold text-white">Firefox</td>
+                            <td className="p-4 font-mono">105+</td>
+                            <td className="p-4 text-green-400">Fully Supported</td>
+                        </tr>
+                        <tr>
+                            <td className="p-4 font-bold text-white">Safari (macOS/iOS)</td>
+                            <td className="p-4 font-mono">16.4+</td>
+                            <td className="p-4 text-green-400">Fully Supported</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-xs text-slate-500">
+                * Requires <code>OffscreenCanvas</code> and <code>Web Worker</code> support.
+                Older browsers will throw a runtime error.
+            </p>
+        </div>
+
+        {/* FRAMEWORK SUPPORT */}
+        <div className="pb-10 border-t border-slate-800 pt-10">
+            <h2 className="text-2xl font-bold text-white mb-6">🔌 Framework Support</h2>
+            <div className="p-6 bg-slate-900 border border-slate-800 rounded-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-50">
+                    {/* React Logo Placeholder (Text for now) */}
+                    <span className="text-6xl font-black text-blue-900">⚛️</span>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Built for React</h3>
+                <p className="text-slate-400 relative z-10 text-sm leading-relaxed max-w-lg">
+                    This library currently exports a <strong>React Component</strong> (<code>&lt;MissionClock /&gt;</code>) and a set of hooks.
+                    It requires <code>react</code> version 18+ as a peer dependency.
+                </p>
+                <div className="mt-4 inline-block px-3 py-1 bg-blue-900/30 border border-blue-500/30 rounded text-xs text-blue-300">
+                    Peer Dependency: React 18+
+                </div>
+
+                <p className="text-xs text-slate-500 mt-6 pt-4 border-t border-slate-800">
+                    <em><strong>Note:</strong> The underlying <code>clock.worker.ts</code> engine is framework-agnostic. Vue/Svelte bindings can be implemented by porting the `MissionClock` wrapper.</em>
                 </p>
             </div>
         </div>
@@ -225,6 +366,12 @@ const ApiSection = () => (
                         <td className="p-4 font-mono text-slate-500">undefined</td>
                         <td className="p-4">CSS classes for the outer container.</td>
                     </tr>
+                    <tr>
+                        <td className="p-4 font-mono text-blue-400">countDirection</td>
+                        <td className="p-4 font-mono text-purple-400">'UP' | 'DOWN'</td>
+                        <td className="p-4 font-mono text-slate-500">'UP'</td>
+                        <td className="p-4">The initial counting direction.</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -241,7 +388,7 @@ const ApiSection = () => (
   fontWeight?: string;     // e.g. "700" (optional override)
   glowEffect: boolean;     // Enable text-shadow glow
   showDot: boolean;        // Show the pulsing "worker active" dot
-  timeFormat?: string;     // "hh:mm:ss", "mm:ss", "hh:mm"
+  timeFormat?: string;     // "hh:mm:ss", "mm:ss", "m:ss", "s"
 }`}
                 </SyntaxHighlighter>
             </div>
@@ -276,6 +423,7 @@ const StylingSection = () => {
                 <h1 className="text-4xl font-bold text-white mb-4">Styling Guide</h1>
                 <p className="text-lg text-slate-400">
                     The clock's appearance is fully customizable via the <code>config</code> prop.
+                    Supports flexible formats like <code>hh:mm:ss</code>, <code>mm:ss</code>, or even single digit <code>m:s</code>.
                     Use the interactive playground below to generate your style config.
                 </p>
             </div>
@@ -375,7 +523,7 @@ const ControlsSection = () => {
                         <button onClick={() => handleAction('Started', () => controller.current?.start())} className="p-3 bg-green-900/30 text-green-400 border border-green-900/50 rounded hover:bg-green-900/50 font-mono text-sm">.start()</button>
                         <button onClick={() => handleAction('Paused', () => controller.current?.pause())} className="p-3 bg-yellow-900/30 text-yellow-400 border border-yellow-900/50 rounded hover:bg-yellow-900/50 font-mono text-sm">.pause()</button>
                         <button onClick={() => handleAction('Added 1 Min', () => controller.current?.adjustTime(60))} className="p-3 bg-blue-900/30 text-blue-400 border border-blue-900/50 rounded hover:bg-blue-900/50 font-mono text-sm">.adjustTime(60)</button>
-                        <button onClick={() => handleAction('Reset to 0', () => controller.current?.setTime(0))} className="p-3 bg-red-900/30 text-red-400 border border-red-900/50 rounded hover:bg-red-900/50 font-mono text-sm">.setTime(0)</button>
+                        <button onClick={() => handleAction('Direction DOWN', () => controller.current?.setDirection('DOWN'))} className="p-3 bg-purple-900/30 text-purple-400 border border-purple-900/50 rounded hover:bg-purple-900/50 font-mono text-sm">.setDirection</button>
                     </div>
                 </div>
 
@@ -393,8 +541,8 @@ const controller = useRef(null);
   Start
 </button>
 
-<button onClick={() => controller.current.adjustTime(60)}>
-  Add 1 Minute
+<button onClick={() => controller.current.setDirection('DOWN')}>
+  Count Down
 </button>`}
                     </SyntaxHighlighter>
                 </div>
@@ -411,21 +559,22 @@ const ShowcaseSection = () => (
         {/* SPORT */}
         <div className="p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                ⚽ Sports Broadcast
+                ⚽ Sports Match Clock
             </h3>
-            <p className="text-sm text-slate-400">High contrast, large fonts, and specific "90:00" formatting.</p>
+            <p className="text-sm text-slate-400">Fixed width monospace font for stable digit alignment.</p>
             <div className="h-32 bg-black rounded border border-slate-700 relative overflow-hidden">
                 <MissionClock
                     config={{
                         backgroundColor: '#000',
                         textColor: '#fbbf24', // Amber
-                        fontFamily: 'Impact',
+                        fontFamily: '"Courier New", monospace',
                         glowEffect: false,
                         showDot: false,
                         timeFormat: 'mm:ss'
                     }}
                     initialSeconds={5400} // 90 mins
                     className="w-full h-full"
+                    autoStart={true}
                 />
             </div>
         </div>
@@ -447,8 +596,35 @@ const ShowcaseSection = () => (
                     }}
                     initialSeconds={34200} // 09:30:00
                     className="w-full h-full"
+                    autoStart={true}
                 />
             </div>
         </div>
-    </div>
+
+
+        {/* NEW YORK TIMES SQUARE */}
+        <div className="p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                Count down
+            </h3>
+            <p className="text-sm text-slate-400">Countdown to zero, stopping automatically. High impact style.</p>
+            <div className="h-40 bg-black rounded border border-slate-700 relative overflow-hidden">
+                <MissionClock
+                    config={{
+                        backgroundColor: '#000000',
+                        textColor: '#ff00ff',
+                        fontFamily: 'Impact, sans-serif',
+                        glowEffect: true,
+                        showDot: false,
+                        timeFormat: 's'
+                    }}
+                    initialSeconds={10}
+                    countDirection="DOWN"
+                    stopAtZero={true}
+                    autoStart={true}
+                    className="w-full h-full"
+                />
+            </div>
+        </div>
+    </div >
 );
