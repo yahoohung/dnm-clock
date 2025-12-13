@@ -2,8 +2,51 @@ import React, { useRef, useState } from 'react';
 import { CpuStressTest } from './components/CpuStressTest';
 import { ChaosMonkey } from './components/ChaosMonkey';
 import { RenderLagSimulator } from './components/RenderLagSimulator';
-import { MissionClock } from './lib';
+import { MissionClock, ClockStyleConfig } from './lib';
 import { NaiveClock, NaiveClockHandle } from './components/NaiveClock';
+
+const STYLE_PRESETS: Record<string, { label: string, config: Partial<ClockStyleConfig> }> = {
+  default: {
+    label: 'Standard',
+    config: {
+      backgroundColor: 'transparent',
+      textColor: '#22c55e',
+      fontFamily: "'Courier New', monospace",
+      glowEffect: true,
+      showDot: true
+    }
+  },
+  cyberpunk: {
+    label: 'Cyberpunk',
+    config: {
+      backgroundColor: 'rgba(20, 0, 40, 0.9)',
+      textColor: '#00fff2',
+      fontFamily: "Impact, sans-serif",
+      glowEffect: true,
+      showDot: true
+    }
+  },
+  minimal: {
+    label: 'Minimal',
+    config: {
+      backgroundColor: '#f8fafc',
+      textColor: '#0f172a',
+      fontFamily: "Arial, sans-serif",
+      glowEffect: false,
+      showDot: false
+    }
+  },
+  retro: {
+    label: 'Retro',
+    config: {
+      backgroundColor: '#1a1000',
+      textColor: '#fbbf24',
+      fontFamily: "'Courier New', monospace",
+      glowEffect: true,
+      showDot: true
+    }
+  }
+};
 
 function App() {
   const clockControllerRef = useRef<any>(null);
@@ -11,6 +54,7 @@ function App() {
 
   const [isRunning, setIsRunning] = useState(false);
   const [timeFormat, setTimeFormat] = useState('hh:mm:ss');
+  const [activeStyle, setActiveStyle] = useState('default');
 
   const actions = {
     start: () => {
@@ -110,9 +154,9 @@ function App() {
                   initialSeconds={0}
                   className="w-full h-64" // Height is arbitrary, canvas scales
                   config={{
-                    textColor: isRunning ? '#22c55e' : '#475569',
-                    glowEffect: true,
-                    backgroundColor: 'transparent', // Let container bg show
+                    ...STYLE_PRESETS[activeStyle].config,
+                    // Override color for pause state ONLY if in default mode (to match original behavior)
+                    // or just let the preset dictate. Let's keep it simple and just use the preset + format.
                     timeFormat
                   }}
                 />
@@ -151,6 +195,25 @@ function App() {
                   className="flex-1 min-w-[80px] py-3 text-xs font-mono font-bold text-slate-400 bg-slate-950 border border-slate-800 rounded hover:bg-slate-800 hover:text-white transition-colors"
                 >
                   {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* STYLE PRESETS */}
+          <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 flex flex-col md:flex-row items-center gap-4">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Visual Style</span>
+            <div className="flex-1 flex gap-2 w-full overflow-x-auto no-scrollbar">
+              {Object.entries(STYLE_PRESETS).map(([key, preset]) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveStyle(key)}
+                  className={`px-4 py-2 text-xs font-bold rounded transition-all whitespace-nowrap border ${activeStyle === key
+                    ? 'bg-slate-100 text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.3)]'
+                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-600 hover:text-white'
+                    }`}
+                >
+                  {preset.label}
                 </button>
               ))}
             </div>
@@ -285,8 +348,8 @@ function App() {
 
         </div>
 
-      </main>
-    </div>
+      </main >
+    </div >
   );
 }
 
