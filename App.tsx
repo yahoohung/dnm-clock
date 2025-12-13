@@ -118,10 +118,10 @@ function App() {
             </div>
             <div>
               <h1 className="font-bold text-lg tracking-tight text-slate-100 leading-tight">
-                DNM Broadcast Engine
+                DNM Clock
               </h1>
               <div className="text-[10px] font-mono text-blue-400 uppercase tracking-widest">
-                PoC: OffscreenCanvas Worker
+                React based | High-Precision | Drift-free
               </div>
             </div>
           </div>
